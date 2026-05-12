@@ -79,6 +79,22 @@
   <div id="quizResultContent"></div>
 </section>
 
+<!-- SONGS PAGE -->
+<section class="page" id="page-songs">
+  <div class="page-title">🎵 韩语歌曲</div>
+  <div id="songList"></div>
+</section>
+
+<!-- SONG DETAIL PAGE -->
+<section class="page" id="page-song-detail">
+  <div id="songDetailContent"></div>
+</section>
+
+<!-- SONG QUIZ PAGE -->
+<section class="page" id="page-song-quiz">
+  <div id="songQuizContent"></div>
+</section>
+
 <!-- PROFILE PAGE -->
 <section class="page" id="page-profile">
   <div class="profile-header">
@@ -111,8 +127,8 @@
   <div class="tab-item" data-tab="courses" onclick="switchTab('courses')">
     <span class="tab-icon">📚</span>课程
   </div>
-  <div class="tab-item" data-tab="quiz" onclick="switchTab('quiz-main')">
-    <span class="tab-icon">✏️</span>练习
+  <div class="tab-item" data-tab="songs" onclick="switchTab('songs')">
+    <span class="tab-icon">🎵</span>歌曲
   </div>
   <div class="tab-item" data-tab="profile" onclick="switchTab('profile')">
     <span class="tab-icon">👤</span>我的
@@ -125,6 +141,7 @@
 </div><!-- /#app -->
 
 <script src="js/api.js"></script>
+<script src="js/songs.js"></script>
 <script>
 // ============ APP STATE ============
 let currentPage = 'home';
@@ -181,6 +198,7 @@ function switchTab(tab) {
   currentPage = tab === 'quiz-main' ? 'quiz' : tab;
   if (tab === 'home') loadHomeStats();
   if (tab === 'courses') loadCourses(0);
+  if (tab === 'songs') loadSongList();
   if (tab === 'profile') loadProfileStats();
 }
 
@@ -197,6 +215,7 @@ function goBack() {
   else if (currentPage === 'lesson') navigateTo('course-detail', currentCourse?.title || '课程详情');
   else if (currentPage === 'vocabulary') navigateTo('lesson', currentLesson?.title || '课时');
   else if (currentPage === 'quiz-result') navigateTo('lesson', currentLesson?.title || '课时');
+  else if (currentPage === 'song-detail' || currentPage === 'song-quiz') switchTab('songs');
   else if (currentPage === 'quiz') switchTab('home');
   else switchTab('home');
 }
@@ -496,6 +515,137 @@ async function loadProfileStats() {
       document.getElementById('pRate').textContent = stats.correct_rate + '%';
     }
   } catch(e) {}
+}
+
+// ============ SONGS ============
+function loadSongList() {
+  const container = document.getElementById('songList');
+  container.innerHTML = songData.map(s => `
+    <div class="course-card" onclick="openSong(${s.id})">
+      <div class="cc-cover">${s.level === 1 ? '🎵' : s.level === 2 ? '🎶' : '🎤'}</div>
+      <div class="cc-info">
+        <div class="cc-title">${s.title}</div>
+        <div class="cc-meta">${s.artist} · ${s.desc.slice(0,40)}...</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--accent)">Lv.${s.level} · ${s.lyrics.length}句</div>
+      </div>
+      <div style="color:var(--text-light);font-size:22px">›</div>
+    </div>`).join('');
+}
+
+function openSong(songId) {
+  navigateTo('song-detail', '歌曲详情');
+  const song = songData.find(s => s.id === songId);
+  if (!song) return;
+  const container = document.getElementById('songDetailContent');
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-title">${song.title} <span style="font-size:12px;color:var(--text-light)">— ${song.artist}</span></div>
+      <div class="card-subtitle">${song.desc}</div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="audio-btn" onclick="KoreanTTS.speakSlow('${song.title.replace(/'/g,"\\'")}')">🔊 歌名</button>
+        <button class="audio-btn" onclick="playSong(${songId})">▶️ 逐句播放</button>
+        <button class="audio-btn" onclick="startSongQuiz(${songId})">✏️ 歌词填空</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📝 歌词</div>
+      ${song.lyrics.map((line, i) => `
+        <div class="lyric-line" style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="speakLine('${line.ko.replace(/'/g,"\\'")}')">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:17px;font-weight:600;color:var(--primary)">${line.ko}</span>
+            <span class="audio-btn" style="font-size:14px">🔊</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-light)">${line.zh}</div>
+          ${line.words.length ? `<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">${line.words.map(w => {
+            const [ko, zh] = w.split('=');
+            return `<span style="background:#e3f2fd;color:var(--primary);padding:2px 8px;border-radius:10px;font-size:11px;cursor:pointer" onclick="event.stopPropagation();KoreanTTS.speakWord('${ko.replace(/'/g,"\\'")}')">${ko}=${zh} 🔊</span>`;
+          }).join('')}</div>` : ''}
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+function speakLine(text) {
+  KoreanTTS.speakSlow(text);
+}
+
+function playSong(songId) {
+  const song = songData.find(s => s.id === songId);
+  if (!song) return;
+  let i = 0;
+  function playNext() {
+    if (i >= song.lyrics.length) return;
+    KoreanTTS.speakSlow(song.lyrics[i].ko);
+    i++;
+    setTimeout(playNext, 3500);
+  }
+  playNext();
+  toast('▶️ 开始逐句播放');
+}
+
+// Song Quiz - Fill in the blank
+function startSongQuiz(songId) {
+  navigateTo('song-quiz', '歌词填空');
+  const song = songData.find(s => s.id === songId);
+  if (!song) return;
+  
+  // Pick 4 random lines and blank out a word
+  const lines = [...song.lyrics].sort(() => Math.random() - 0.5).slice(0, Math.min(4, song.lyrics.length));
+  window._songQuiz = { song, lines, current: 0, score: 0 };
+  renderSongQuizQuestion();
+}
+
+function renderSongQuizQuestion() {
+  const quiz = window._songQuiz;
+  if (!quiz || quiz.current >= quiz.lines.length) {
+    showSongQuizResult();
+    return;
+  }
+  const line = quiz.lines[quiz.current];
+  // Pick a random word to blank
+  const words = line.ko.split(' ');
+  if (words.length < 2) { quiz.current++; renderSongQuizQuestion(); return; }
+  const blankIdx = Math.floor(Math.random() * words.length);
+  const answer = words[blankIdx];
+  // Create blanked line
+  const blankedWords = words.map((w, i) => i === blankIdx ? '_____' : w);
+  
+  const container = document.getElementById('songQuizContent');
+  container.innerHTML = `
+    <div class="quiz-progress"><div class="quiz-progress-bar" style="width:${Math.round(quiz.current/quiz.lines.length*100)}%"></div></div>
+    <div style="font-size:12px;color:var(--text-light);margin-bottom:8px">歌词填空 · ${quiz.current+1}/${quiz.lines.length}</div>
+    <div style="margin-bottom:8px;font-size:13px;color:var(--text-light)">💡 提示: ${line.zh}</div>
+    <div style="font-size:20px;font-weight:600;margin:16px 0;line-height:1.8;letter-spacing:2px">
+      ${blankedWords.join(' ')}
+    </div>
+    <button class="audio-btn" style="font-size:16px;padding:10px 16px;margin-bottom:12px" onclick="KoreanTTS.speakSlow('${line.ko.replace(/'/g,"\\'")}')">🔊 听完整句</button>
+    <input class="quiz-input" id="songFillInput" placeholder="输入缺失的韩语单词...">
+    <button class="btn btn-primary" onclick="checkSongFill('${answer.replace(/'/g,"\\'")}')">提交</button>
+  `;
+}
+
+function checkSongFill(answer) {
+  const input = document.getElementById('songFillInput');
+  if (!input) return;
+  const userAnswer = input.value.trim();
+  if (!userAnswer) { toast('请输入答案'); return; }
+  const quiz = window._songQuiz;
+  const isCorrect = userAnswer === answer;
+  if (isCorrect) quiz.score++;
+  toast(isCorrect ? '✅ 正确!' : `❌ 答案是: ${answer}`);
+  quiz.current++;
+  setTimeout(() => renderSongQuizQuestion(), 1000);
+}
+
+function showSongQuizResult() {
+  const quiz = window._songQuiz;
+  if (!quiz) return;
+  navigateTo('song-detail', quiz.song.title);
+  const score = quiz.score;
+  const total = quiz.lines.length;
+  toast(`🎵 歌词填空得分: ${score}/${total}`);
+  // Go back to song detail
+  setTimeout(() => openSong(quiz.song.id), 500);
 }
 
 // ============ GLOBAL CLICK (vocab speaker) ============

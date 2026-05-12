@@ -223,6 +223,10 @@ body {
 }
 .toast.show { opacity: 1; }
 
+/* ===== Song Lyrics ===== */
+.lyric-line { transition: background 0.15s; }
+.lyric-line:active { background: #f0f4ff; }
+
 /* ===== Empty State ===== */
 .empty { text-align: center; padding: 60px 20px; color: var(--text-light); }
 .empty .empty-icon { font-size: 48px; margin-bottom: 12px; }

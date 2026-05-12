@@ -2,140 +2,299 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>文文的韩语老师</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div id="app" data-page="home" data-params="{}">
+<div id="app">
 
-<!-- ===== TOP BAR ===== -->
+<!-- Particle Canvas -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- Top Bar -->
 <header class="top-bar" id="topBar">
-  <span class="back-btn" id="backBtn" style="visibility:hidden">‹</span>
+  <span class="back-btn" id="backBtn" style="visibility:hidden">&#8249;</span>
   <h1 id="topTitle">文文的韩语老师</h1>
-  <span style="width:36px"></span>
+  <span class="top-action" id="topAction" style="visibility:hidden"></span>
 </header>
 
-<!-- ===== PAGES ===== -->
+<!-- Pages Container -->
+<div class="pages-container">
 
-<!-- HOME PAGE -->
+<!-- ==================== HOME ==================== -->
 <section class="page active" id="page-home">
-  <div class="profile-header" style="padding:10px 0">
-    <div class="profile-avatar">🇰🇷</div>
-    <div class="profile-name" id="homeNickname">文文</div>
-    <div class="profile-level">Level <span id="homeLevel">1</span> · 화이팅! 💪</div>
+  <div class="hero-section animate-in">
+    <div class="hero-greeting">안녕하세요</div>
+    <div class="hero-title">文文的韩语老师</div>
+    <div class="hero-subtitle">한국어를 함께 배워요</div>
   </div>
-  <div class="card">
-    <div class="card-title">📊 学习统计</div>
-    <div class="stats-grid" style="margin:10px 0">
-      <div class="stat-item"><div class="stat-value" id="statLessons">15</div><div class="stat-label">总课时</div></div>
-      <div class="stat-item"><div class="stat-value" id="statCompleted">0</div><div class="stat-label">已完成</div></div>
-      <div class="stat-item"><div class="stat-value" id="statVocab">36</div><div class="stat-label">总词汇</div></div>
-      <div class="stat-item"><div class="stat-value" id="statRate">-</div><div class="stat-label">正确率</div></div>
+
+  <div class="streak-bar" id="streakBar">
+    <div class="streak-icon" style="display:flex;align-items:center;justify-content:center;">&#9733;</div>
+    <div class="streak-info">
+      <div class="streak-count" id="streakCount">0</div>
+      <div class="streak-label">连续学习天数</div>
+    </div>
+    <div class="streak-xp" id="streakXP">XP 0</div>
+  </div>
+
+  <div class="stats-rings" id="statsRings">
+    <div class="stat-ring-item">
+      <canvas id="ringLessons" width="68" height="68"></canvas>
+      <div class="ring-value" id="ringLessonsVal">0%</div>
+      <div class="ring-label">课程进度</div>
+    </div>
+    <div class="stat-ring-item">
+      <canvas id="ringVocab" width="68" height="68"></canvas>
+      <div class="ring-value" id="ringVocabVal">0%</div>
+      <div class="ring-label">词汇掌握</div>
+    </div>
+    <div class="stat-ring-item">
+      <canvas id="ringAccuracy" width="68" height="68"></canvas>
+      <div class="ring-value" id="ringAccuracyVal">0%</div>
+      <div class="ring-label">练习正确率</div>
     </div>
   </div>
-  <div class="btn btn-primary" onclick="switchTab('courses')" style="margin-top:12px">📚 开始学习</div>
-  <div style="margin-top:16px">
-    <div class="card-title">🔥 推荐课程</div>
-    <div id="homeCourses"></div>
+
+  <div class="quick-actions">
+    <div class="quick-action" onclick="switchTab('daily')">
+      <div class="qa-icon">&#9733;</div>
+      <div class="qa-title">每日挑战</div>
+      <div class="qa-subtitle" id="qaDailyPreview">今日任务</div>
+    </div>
+    <div class="quick-action" onclick="switchTab('flashcard')">
+      <div class="qa-icon">&#9830;</div>
+      <div class="qa-title">闪卡复习</div>
+      <div class="qa-subtitle" id="qaFlashcardCount">待复习</div>
+      <div class="qa-badge" id="qaFlashcardBadge" style="display:none">0</div>
+    </div>
+    <div class="quick-action" onclick="switchTab('courses')">
+      <div class="qa-icon">&#9654;</div>
+      <div class="qa-title">继续学习</div>
+      <div class="qa-subtitle" id="qaLastLesson">选择课程</div>
+    </div>
+    <div class="quick-action" onclick="switchTab('voice')">
+      <div class="qa-icon">&#9679;</div>
+      <div class="qa-title">发音练习</div>
+      <div class="qa-subtitle">录音评分</div>
+    </div>
   </div>
+
+  <div class="section-header">
+    <span class="section-title">推荐课程</span>
+    <span class="section-link" onclick="switchTab('courses')">全部 &#8250;</span>
+  </div>
+  <div id="homeCourses"></div>
 </section>
 
-<!-- COURSES PAGE -->
+<!-- ==================== COURSES ==================== -->
 <section class="page" id="page-courses">
-  <div class="page-title">全部课程</div>
-  <div style="display:flex;gap:8px;margin-bottom:16px">
-    <button class="btn btn-outline" style="font-size:13px;padding:8px 16px" onclick="loadCourses(0)">全部</button>
-    <button class="btn btn-outline" style="font-size:13px;padding:8px 16px" onclick="loadCourses(1)">入门</button>
-    <button class="btn btn-outline" style="font-size:13px;padding:8px 16px" onclick="loadCourses(2)">初级</button>
+  <div class="filter-pills">
+    <span class="filter-pill active" onclick="filterCourses(0, this)">全部</span>
+    <span class="filter-pill" onclick="filterCourses(1, this)">入门</span>
+    <span class="filter-pill" onclick="filterCourses(2, this)">初级</span>
+    <span class="filter-pill" onclick="filterCourses(3, this)">中级</span>
   </div>
   <div id="coursesList"></div>
 </section>
 
-<!-- COURSE DETAIL PAGE -->
+<!-- ==================== COURSE DETAIL ==================== -->
 <section class="page" id="page-course-detail">
   <div id="courseDetail"></div>
 </section>
 
-<!-- LESSON PAGE -->
+<!-- ==================== LESSON ==================== -->
 <section class="page" id="page-lesson">
   <div id="lessonContent"></div>
 </section>
 
-<!-- VOCABULARY PAGE -->
-<section class="page" id="page-vocabulary">
-  <div class="page-title">📖 词汇学习</div>
-  <div id="vocabContent"></div>
-</section>
-
-<!-- QUIZ PAGE -->
+<!-- ==================== QUIZ ==================== -->
 <section class="page" id="page-quiz">
-  <div class="page-title">✏️ 练习</div>
   <div id="quizContent"></div>
 </section>
 
-<!-- QUIZ RESULT PAGE -->
+<!-- ==================== QUIZ RESULT ==================== -->
 <section class="page" id="page-quiz-result">
   <div id="quizResultContent"></div>
 </section>
 
-<!-- SONGS PAGE -->
-<section class="page" id="page-songs">
-  <div class="page-title">🎵 韩语歌曲</div>
-  <div id="songList"></div>
-</section>
-
-<!-- SONG DETAIL PAGE -->
-<section class="page" id="page-song-detail">
-  <div id="songDetailContent"></div>
-</section>
-
-<!-- SONG QUIZ PAGE -->
-<section class="page" id="page-song-quiz">
-  <div id="songQuizContent"></div>
-</section>
-
-<!-- PROFILE PAGE -->
-<section class="page" id="page-profile">
-  <div class="profile-header">
-    <div class="profile-avatar">🇰🇷</div>
-    <div class="profile-name" id="profileName">文文</div>
-    <div class="profile-level">Level 1</div>
+<!-- ==================== VOICE PRACTICE ==================== -->
+<section class="page" id="page-voice">
+  <div class="card card-gold">
+    <div class="card-title">发音练习</div>
+    <div class="card-subtitle" id="voiceTargetText">从课程中选择一个单词或句子开始练习</div>
   </div>
-  <div class="stats-grid">
-    <div class="stat-item"><div class="stat-value" id="pLessons">15</div><div class="stat-label">总课时</div></div>
-    <div class="stat-item"><div class="stat-value" id="pCompleted">0</div><div class="stat-label">已完成</div></div>
-    <div class="stat-item"><div class="stat-value" id="pVocab">36</div><div class="stat-label">总词汇</div></div>
-    <div class="stat-item"><div class="stat-value" id="pRate">-</div><div class="stat-label">正确率</div></div>
+  
+  <div class="flex-center" style="margin:16px 0">
+    <button class="tts-btn" onclick="playTargetAudio()" style="font-size:1rem;padding:8px 16px">&#9654; 听标准发音</button>
   </div>
-  <div class="card" style="margin-top:16px">
-    <div class="card-title">⚙️ 设置</div>
-    <div style="padding:12px 0;color:var(--text-light);font-size:13px">语音语速: 
-      <button class="audio-btn" onclick="ttsRate=0.55;toast('语速: 慢速')" style="margin:0 4px">慢</button>
-      <button class="audio-btn" onclick="ttsRate=0.85;toast('语速: 正常')" style="margin:0 4px">正常</button>
-      <button class="audio-btn" onclick="ttsRate=1.1;toast('语速: 快速')" style="margin:0 4px">快</button>
+
+  <div class="flex-center" style="margin:20px 0">
+    <button class="btn-record" id="btnRecord" onclick="toggleRecording()">
+      <div class="record-inner"></div>
+    </button>
+  </div>
+  <div class="text-center text-sm text-secondary" id="recordStatus" style="color:var(--text-tertiary)">点击开始录音</div>
+
+  <canvas class="waveform" id="voiceCanvas"></canvas>
+
+  <div id="voiceResult"></div>
+  
+  <button class="btn btn-primary mt-16" id="btnSubmitVoice" onclick="submitVoice()" disabled>提交评分</button>
+  
+  <div class="mt-16">
+    <div class="section-header">
+      <span class="section-title">练习词汇</span>
+    </div>
+    <div id="voiceVocabList"></div>
+  </div>
+</section>
+
+<!-- ==================== FLASHCARD ==================== -->
+<section class="page" id="page-flashcard">
+  <div class="card" id="flashcardStats">
+    <div style="display:flex;gap:16px;justify-content:space-around;text-align:center">
+      <div><div style="font-size:1.5rem;font-weight:700;color:var(--gold)" id="fcTotal">0</div><div class="text-xs" style="color:var(--text-tertiary)">总计</div></div>
+      <div><div style="font-size:1.5rem;font-weight:700;color:var(--danger)" id="fcDue">0</div><div class="text-xs" style="color:var(--text-tertiary)">待复习</div></div>
+      <div><div style="font-size:1.5rem;font-weight:700;color:var(--success)" id="fcMastered">0</div><div class="text-xs" style="color:var(--text-tertiary)">已掌握</div></div>
     </div>
   </div>
-  <button class="btn btn-primary" onclick="doMockLogin()" style="margin-top:16px">🔄 重新登录</button>
+
+  <div class="flashcard-container" id="flashcardContainer">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="fc-face fc-front">
+        <div class="fc-korean" id="fcKorean"></div>
+        <div class="fc-rom" id="fcRom"></div>
+        <div class="fc-pos" id="fcPos"></div>
+        <div style="color:var(--text-tertiary);font-size:0.75rem">点击翻转</div>
+      </div>
+      <div class="fc-face fc-back">
+        <div class="fc-chinese" id="fcChinese"></div>
+        <div class="fc-example" id="fcExample"></div>
+        <button class="tts-btn mt-8" onclick="event.stopPropagation();playFcAudio()">&#9654; 听发音</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flashcard-actions" id="flashcardActions" style="display:none">
+    <button class="fc-btn again" onclick="rateCard(0)">Again</button>
+    <button class="fc-btn hard" onclick="rateCard(2)">Hard</button>
+    <button class="fc-btn good" onclick="rateCard(4)">Good</button>
+    <button class="fc-btn easy" onclick="rateCard(5)">Easy</button>
+  </div>
+
+  <div class="empty-state" id="flashcardEmpty" style="display:none">
+    <div class="empty-icon">&#9830;</div>
+    <div class="empty-text">暂无待复习闪卡</div>
+    <div style="font-size:0.75rem;color:var(--text-dim)">学习词汇后会自动生成复习卡片</div>
+  </div>
 </section>
 
-<!-- ===== TAB BAR ===== -->
+<!-- ==================== DAILY CHALLENGE ==================== -->
+<section class="page" id="page-daily">
+  <div class="card card-gold" id="dailyCard">
+    <div class="card-title" id="dailyQuestion">加载中...</div>
+    <div class="text-xs" style="color:var(--text-tertiary);margin-bottom:12px" id="dailyType"></div>
+    <input class="quiz-input" id="dailyAnswer" placeholder="输入你的答案..." onkeydown="if(event.key==='Enter')submitDaily()">
+    <button class="btn btn-primary" onclick="submitDaily()">提交</button>
+  </div>
+  <div id="dailyResult" style="display:none"></div>
+  <div class="card mt-16" id="dailyStreakCard">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-tertiary)">连续打卡</div>
+        <div style="font-size:1.5rem;font-weight:700;color:var(--gold)" id="dailyStreakCount">0</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-tertiary)">最长连续</div>
+        <div style="font-size:1.5rem;font-weight:700;color:var(--gold)" id="dailyLongestStreak">0</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-tertiary)">总经验</div>
+        <div style="font-size:1.5rem;font-weight:700;color:var(--gold)" id="dailyTotalXP">0</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ACHIEVEMENTS ==================== -->
+<section class="page" id="page-achievements">
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="font-size:2rem;opacity:0.6">&#9733;</div>
+      <div>
+        <div style="font-size:1.25rem;font-weight:700;color:var(--gold)" id="achXPTotal">0 XP</div>
+        <div style="font-size:0.75rem;color:var(--text-tertiary)">总经验值</div>
+      </div>
+    </div>
+  </div>
+  <div class="achievement-grid" id="achievementGrid"></div>
+</section>
+
+<!-- ==================== PROFILE ==================== -->
+<section class="page" id="page-profile">
+  <div class="profile-header" style="text-align:center;padding:24px 0 16px">
+    <div class="profile-avatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(226,182,79,0.3),rgba(226,182,79,0.05));border:2px solid rgba(226,182,79,0.4);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:2rem">K</div>
+    <div class="profile-name" style="font-size:1.25rem;font-weight:600;background:linear-gradient(135deg,var(--gold),#f5d98e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="profileNickname">韩语学习者</div>
+    <div class="profile-level" style="font-size:0.75rem;color:var(--text-tertiary);margin-top:4px" id="profileLevel">Level 1</div>
+    <div class="progress-bar mt-8" style="width:60%;margin:8px auto 0"><div class="progress-fill" id="profileXPBar" style="width:0%"></div></div>
+    <div class="text-xs" style="color:var(--text-tertiary);margin-top:4px" id="profileXPText">XP 0 / 100</div>
+  </div>
+
+  <div class="stats-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0">
+    <div class="stat-item" style="background:var(--bg-card);border-radius:var(--radius);padding:16px;text-align:center;border:1px solid var(--border)" onclick="switchTab('courses')">
+      <div class="stat-value" style="font-size:1.5rem;font-weight:700;color:var(--gold)" id="pLessons">-</div>
+      <div class="stat-label" style="font-size:0.6875rem;color:var(--text-tertiary);margin-top:4px">课程进度</div>
+    </div>
+    <div class="stat-item" style="background:var(--bg-card);border-radius:var(--radius);padding:16px;text-align:center;border:1px solid var(--border)" onclick="switchTab('achievements')">
+      <div class="stat-value" style="font-size:1.5rem;font-weight:700;color:var(--gold)" id="pAchievements">-</div>
+      <div class="stat-label" style="font-size:0.6875rem;color:var(--text-tertiary);margin-top:4px">成就</div>
+    </div>
+    <div class="stat-item" style="background:var(--bg-card);border-radius:var(--radius);padding:16px;text-align:center;border:1px solid var(--border)" onclick="switchTab('daily')">
+      <div class="stat-value" style="font-size:1.5rem;font-weight:700;color:var(--gold)" id="pStreak">-</div>
+      <div class="stat-label" style="font-size:0.6875rem;color:var(--text-tertiary);margin-top:4px">连续打卡</div>
+    </div>
+    <div class="stat-item" style="background:var(--bg-card);border-radius:var(--radius);padding:16px;text-align:center;border:1px solid var(--border)" onclick="switchTab('flashcard')">
+      <div class="stat-value" style="font-size:1.5rem;font-weight:700;color:var(--gold)" id="pVocab">-</div>
+      <div class="stat-label" style="font-size:0.6875rem;color:var(--text-tertiary);margin-top:4px">词汇</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">设置</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
+      <span style="color:var(--text-secondary);font-size:0.875rem">TTS 语速</span>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-sm btn-outline" onclick="setTtsRate(0.55)">慢</button>
+        <button class="btn btn-sm btn-outline" onclick="setTtsRate(0.85)">正常</button>
+        <button class="btn btn-sm btn-outline" onclick="setTtsRate(1.1)">快</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary mt-12" onclick="doMockLogin()">重新登录</button>
+</section>
+
+</div><!-- /pages-container -->
+
+<!-- Tab Bar -->
 <nav class="tab-bar">
   <div class="tab-item active" data-tab="home" onclick="switchTab('home')">
-    <span class="tab-icon">🏠</span>学习
+    <span class="tab-icon">&#9679;</span>学习
   </div>
   <div class="tab-item" data-tab="courses" onclick="switchTab('courses')">
-    <span class="tab-icon">📚</span>课程
+    <span class="tab-icon">&#9776;</span>课程
   </div>
-  <div class="tab-item" data-tab="songs" onclick="switchTab('songs')">
-    <span class="tab-icon">🎵</span>歌曲
+  <div class="tab-item" data-tab="voice" onclick="switchTab('voice')">
+    <span class="tab-icon">&#9679;</span>发音
   </div>
   <div class="tab-item" data-tab="profile" onclick="switchTab('profile')">
-    <span class="tab-icon">👤</span>我的
+    <span class="tab-icon">&#9670;</span>我的
   </div>
 </nav>
 
-<!-- ===== TOAST ===== -->
+<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 </div><!-- /#app -->
@@ -143,66 +302,118 @@
 <script src="js/api.js?v=2"></script>
 <script src="js/songs.js?v=2"></script>
 <script>
-// ============ APP STATE ============
+// ═══════════════════════════════════════════════════
+//  KOREAN ACADEMY v2 — App Logic
+// ═══════════════════════════════════════════════════
+
+// ── State ──
 let currentPage = 'home';
+let navStack = [];
 let courseData = [];
 let currentCourse = null;
 let currentLesson = null;
 let ttsRate = 0.85;
-let quizState = { questions: [], currentIndex: 0, answers: [], lessonId: null };
+let quizState = { questions: [], currentIndex: 0, answers: [], lessonId: null, locked: false };
+let currentFlashcard = null;
+let voiceBlob = null;
+let voiceTargetText = '';
 
-// ============ INIT ============
-document.addEventListener('DOMContentLoaded', () => {
-  doMockLogin().then(() => {
-    loadHomeStats();
-    loadCourses(0);
-  });
+// ── Init ──
+document.addEventListener('DOMContentLoaded', async () => {
+  await doMockLogin();
+  initParticles();
+  loadHomePage();
+  loadCourses(0);
+  
+  document.getElementById('backBtn').addEventListener('click', goBack);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') goBack(); });
 });
 
-// ============ MOCK LOGIN ============
-async function doMockLogin() {
-  const code = 'web_' + Date.now();
-  const data = await api.login(code);
-  if (data && data.user) {
-    document.getElementById('homeNickname').textContent = data.user.nickname;
-    document.getElementById('homeLevel').textContent = data.user.level;
-    document.getElementById('profileName').textContent = data.user.nickname;
+// ── Particles ──
+function initParticles() {
+  const cvs = document.getElementById('particleCanvas');
+  const ctx = cvs.getContext('2d');
+  let particles = [];
+  
+  function resize() {
+    cvs.width = cvs.offsetWidth;
+    cvs.height = cvs.offsetHeight;
   }
-  return data;
+  resize();
+  window.addEventListener('resize', resize);
+  
+  for (let i = 0; i < 40; i++) {
+    particles.push({
+      x: Math.random() * cvs.width,
+      y: Math.random() * cvs.height,
+      r: Math.random() * 1.5 + 0.5,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      alpha: Math.random() * 0.3 + 0.05
+    });
+  }
+  
+  function draw() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0) p.x = cvs.width;
+      if (p.x > cvs.width) p.x = 0;
+      if (p.y < 0) p.y = cvs.height;
+      if (p.y > cvs.height) p.y = 0;
+      
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(226,182,79,${p.alpha})`;
+      ctx.fill();
+    });
+    
+    // Draw connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(226,182,79,${0.06 * (1 - dist / 120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    
+    requestAnimationFrame(draw);
+  }
+  draw();
 }
 
-// ============ NAVIGATION ============
+// ── Navigation ──
 function switchTab(tab) {
-  // Reset sub-page state
   document.getElementById('backBtn').style.visibility = 'hidden';
   document.getElementById('topTitle').textContent = '文文的韩语老师';
-
-  if (tab === 'quiz-main') {
-    // Show quiz entry page
-    showPage('quiz');
-    loadQuizEntry();
-  } else {
-    showPage(tab);
-  }
-
-  // Update tab bar
+  navStack = [];
+  showPage(tab);
+  
   document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
   const activeTab = document.querySelector(`.tab-item[data-tab="${tab}"]`);
   if (activeTab) activeTab.classList.add('active');
-  else {
-    // Map quiz-main to quiz tab
-    const qt = document.querySelector('.tab-item[data-tab="quiz"]');
-    if (qt && tab === 'quiz-main') qt.classList.add('active');
-  }
-
-  currentPage = tab === 'quiz-main' ? 'quiz' : tab;
-  if (tab === 'home') loadHomeStats();
+  
+  currentPage = tab;
+  if (tab === 'home') loadHomePage();
   if (tab === 'courses') loadCourses(0);
-  if (tab === 'songs') loadSongList();
-  if (tab === 'profile') loadProfileStats();
+  if (tab === 'voice') loadVoicePage();
+  if (tab === 'flashcard') loadFlashcards();
+  if (tab === 'daily') loadDaily();
+  if (tab === 'achievements') loadAchievements();
+  if (tab === 'profile') loadProfile();
 }
 
 function navigateTo(page, title, params = {}) {
+  navStack.push({ page: currentPage, title: document.getElementById('topTitle').textContent });
   document.getElementById('backBtn').style.visibility = 'visible';
   document.getElementById('topTitle').textContent = title;
   showPage(page);
@@ -211,247 +422,331 @@ function navigateTo(page, title, params = {}) {
 }
 
 function goBack() {
-  if (currentPage === 'course-detail') switchTab('courses');
-  else if (currentPage === 'lesson') navigateTo('course-detail', currentCourse?.title || '课程详情');
-  else if (currentPage === 'vocabulary') navigateTo('lesson', currentLesson?.title || '课时');
-  else if (currentPage === 'quiz-result') navigateTo('lesson', currentLesson?.title || '课时');
-  else if (currentPage === 'song-detail' || currentPage === 'song-quiz') switchTab('songs');
-  else if (currentPage === 'quiz') switchTab('home');
-  else switchTab('home');
+  if (navStack.length === 0) {
+    switchTab('home');
+    return;
+  }
+  const prev = navStack.pop();
+  currentPage = prev.page;
+  document.getElementById('topTitle').textContent = prev.title;
+  if (navStack.length === 0) {
+    document.getElementById('backBtn').style.visibility = 'hidden';
+  }
+  showPage(prev.page);
 }
-
-document.getElementById('backBtn').addEventListener('click', goBack);
 
 function showPage(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const el = document.getElementById('page-' + page);
-  if (el) el.classList.add('active');
+  if (el) { el.classList.add('active'); el.scrollTop = 0; }
   window.scrollTo(0, 0);
 }
 
-// ============ TOAST ============
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// ============ HOME ============
-async function loadHomeStats() {
+// ── Auth ──
+async function doMockLogin() {
+  const code = 'web_' + Date.now();
+  const data = await api.login(code);
+  if (data && data.user) {
+    localStorage.setItem('ka_user', JSON.stringify(data.user));
+    updateUserUI(data.user);
+  }
+  return data;
+}
+
+function updateUserUI(user) {
+  if (!user) return;
+  document.getElementById('profileNickname').textContent = user.nickname || '韩语学习者';
+  document.getElementById('profileLevel').textContent = 'Level ' + (user.level || 1);
+}
+
+// ── Stats Rings ──
+function drawRing(canvasId, percent, color) {
+  const cvs = document.getElementById(canvasId);
+  if (!cvs) return;
+  const ctx = cvs.getContext('2d');
+  const cx = 34, cy = 34, r = 28, lw = 4;
+  ctx.clearRect(0, 0, 68, 68);
+  
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = '#27272A';
+  ctx.lineWidth = lw;
+  ctx.stroke();
+  
+  const angle = (Math.PI * 2 * percent / 100) - Math.PI / 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, -Math.PI / 2, angle);
+  const grad = ctx.createLinearGradient(0, 0, 68, 68);
+  grad.addColorStop(0, '#E2B64F');
+  grad.addColorStop(1, '#C49A35');
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = lw;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+}
+
+// ── HOME ──
+async function loadHomePage() {
   try {
-    const stats = await api.getProgress();
-    if (stats) {
-      document.getElementById('statLessons').textContent = stats.total_lessons;
-      document.getElementById('statCompleted').textContent = stats.completed_lessons;
-      document.getElementById('statVocab').textContent = stats.total_vocabulary;
-      document.getElementById('statRate').textContent = stats.correct_rate + '%';
+    const [stats, courses, streak] = await Promise.all([
+      api.getProgress(),
+      api.getCourses(),
+      api.getStreak().catch(() => null)
+    ]);
+    
+    if (streak) {
+      document.getElementById('streakCount').textContent = streak.current_streak || 0;
+      document.getElementById('streakXP').textContent = 'XP ' + (streak.total_xp || 0);
     }
-    // Load course cards
-    const courses = await api.getCourses();
+    
+    if (stats) {
+      const completedPct = stats.total_lessons > 0 ? Math.round(stats.completed_lessons / stats.total_lessons * 100) : 0;
+      const vocabPct = stats.total_vocabulary > 0 ? Math.min(100, Math.round(stats.completed_lessons / stats.total_lessons * 100)) : 0;
+      drawRing('ringLessons', completedPct, '#E2B64F');
+      drawRing('ringVocab', vocabPct, '#E2B64F');
+      drawRing('ringAccuracy', stats.correct_rate || 0, '#22C55E');
+      document.getElementById('ringLessonsVal').textContent = completedPct + '%';
+      document.getElementById('ringVocabVal').textContent = vocabPct + '%';
+      document.getElementById('ringAccuracyVal').textContent = (stats.correct_rate || 0) + '%';
+    }
+    
     if (courses && courses.length) {
-      const html = courses.slice(0, 2).map(c => `
+      document.getElementById('homeCourses').innerHTML = courses.slice(0, 3).map(c => `
         <div class="course-card" onclick="openCourse(${c.id})">
-          <div class="cc-cover">📗</div>
+          <div class="cc-thumb">K</div>
           <div class="cc-info">
             <div class="cc-title">${c.title}</div>
             <div class="cc-meta">${c.subtitle || ''} · ${c.unit_count}单元</div>
           </div>
+          <div class="cc-arrow">&#8250;</div>
         </div>`).join('');
-      document.getElementById('homeCourses').innerHTML = html;
     }
-  } catch(e) { console.error(e); }
+    
+    // Flashcard due count
+    try {
+      const fcStats = await api.getFlashcardStats();
+      if (fcStats && fcStats.due > 0) {
+        document.getElementById('qaFlashcardCount').textContent = fcStats.due + '张待复习';
+        const badge = document.getElementById('qaFlashcardBadge');
+        badge.textContent = fcStats.due;
+        badge.style.display = 'flex';
+      }
+    } catch(e) {}
+    
+  } catch(e) { console.error('Home load error:', e); }
 }
 
-// ============ COURSES ============
+// ── COURSES ──
 async function loadCourses(level) {
   const container = document.getElementById('coursesList');
-  container.innerHTML = '<div class="loading"></div>';
+  container.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
   try {
     const url = level > 0 ? `/courses?level=${level}` : '/courses';
     const data = await api.request(url);
+    courseData = data || [];
     if (data && data.length) {
-      courseData = data;
       container.innerHTML = data.map(c => `
         <div class="course-card" onclick="openCourse(${c.id})">
-          <div class="cc-cover">${c.level === 1 ? '📗' : c.level === 2 ? '📘' : '📕'}</div>
+          <div class="cc-thumb">K</div>
           <div class="cc-info">
             <div class="cc-title">${c.title}</div>
             <div class="cc-meta">${c.subtitle || ''} · ${c.unit_count}单元 · Lv.${c.level}</div>
           </div>
-          <div style="color:var(--text-light);font-size:22px">›</div>
+          <div class="cc-arrow">&#8250;</div>
         </div>`).join('');
     } else {
-      container.innerHTML = '<div class="empty"><div class="empty-icon">📚</div>暂无课程</div>';
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">&#9776;</div><div class="empty-text">暂无课程</div></div>';
     }
   } catch(e) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>加载失败，请检查网络</div>';
+    container.innerHTML = '<div class="empty-state"><div class="empty-text">加载失败</div></div>';
   }
 }
 
-// ============ COURSE DETAIL ============
-function openCourse(courseId) {
-  loadCourseDetail(courseId);
+function filterCourses(level, el) {
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  loadCourses(level);
 }
 
-async function loadCourseDetail(courseId) {
+async function openCourse(courseId) {
   navigateTo('course-detail', '课程详情');
   const container = document.getElementById('courseDetail');
-  container.innerHTML = '<div class="loading"></div>';
+  container.innerHTML = '<div class="skeleton skeleton-card"></div>';
   try {
     const data = await api.getCourseDetail(courseId);
-    if (!data) { container.innerHTML = '<div class="empty">课程不存在</div>'; return; }
+    if (!data) { container.innerHTML = '<div class="empty-state"><div class="empty-text">课程不存在</div></div>'; return; }
     currentCourse = data;
     container.innerHTML = `
-      <div class="card">
+      <div class="card card-gold">
         <div class="card-title">${data.title}</div>
         <div class="card-subtitle">${data.description || ''}</div>
-        <div style="margin-top:8px;font-size:12px;color:var(--text-light)">${data.unit_count}单元 · Lv.${data.level}</div>
+        <div class="text-xs mt-8" style="color:var(--text-tertiary)">${data.unit_count}单元 · Lv.${data.level}</div>
       </div>
       ${(data.units || []).map((u, ui) => `
-        <div class="unit-item">
+        <div class="unit-group">
           <div class="unit-header" onclick="toggleUnit(this)">
-            <span class="unit-title">📖 ${u.title}</span>
-            <span class="unit-count">${u.lesson_count || 0}课时 ▾</span>
+            <span class="uh-title">${u.title}</span>
+            <span class="uh-arrow">&#9660;</span>
           </div>
           <div class="lesson-list">
             ${(u.lessons || []).map(l => `
-              <div class="lesson-item" onclick="event.stopPropagation(); openLesson(${l.id}, '${l.title.replace(/'/g,"\\'")}')">
-                <span class="li-icon">📝</span>
+              <div class="lesson-item" onclick="event.stopPropagation();openLesson(${l.id}, '${escAttr(l.title)}')">
+                <div class="li-check">&#10003;</div>
                 <span class="li-title">${l.title}</span>
-                <span class="li-duration">${Math.floor(l.duration/60)}分</span>
+                <span class="li-dur">${Math.floor(l.duration/60)}分</span>
               </div>`).join('')}
           </div>
         </div>`).join('')}
     `;
-  } catch(e) { container.innerHTML = '<div class="empty">加载失败</div>'; }
+  } catch(e) { container.innerHTML = '<div class="empty-state"><div class="empty-text">加载失败</div></div>'; }
 }
 
 function toggleUnit(header) {
   const list = header.nextElementSibling;
+  header.classList.toggle('open');
   list.classList.toggle('open');
-  header.querySelector('.unit-count').textContent = list.classList.contains('open')
-    ? header.querySelector('.unit-count').textContent.replace('▾','▴')
-    : header.querySelector('.unit-count').textContent.replace('▴','▾');
 }
 
-// ============ LESSON ============
+// ── LESSON ──
 async function openLesson(lessonId, title) {
   navigateTo('lesson', title || '课时');
   currentLesson = { id: lessonId, title: title };
   const container = document.getElementById('lessonContent');
-  container.innerHTML = '<div class="loading"></div>';
+  container.innerHTML = '<div class="skeleton skeleton-card"></div>';
   try {
-    const [lesson, vocab] = await Promise.all([
+    const [lesson, vocab, grammar] = await Promise.all([
       api.getLesson(lessonId),
-      api.getVocabulary(lessonId)
+      api.getVocabulary(lessonId),
+      api.getGrammar(lessonId).catch(() => [])
     ]);
-    if (!lesson) { container.innerHTML = '<div class="empty">课时不存在</div>'; return; }
+    if (!lesson) { container.innerHTML = '<div class="empty-state"><div class="empty-text">课时不存在</div></div>'; return; }
     currentLesson = lesson;
-    const contentHtml = (lesson.content || '').replace(/\n/g, '<br>');
+    
+    let grammarHtml = '';
+    if (grammar && grammar.length) {
+      grammarHtml = `
+        <div class="section-header"><span class="section-title">语法要点</span></div>
+        ${grammar.map(g => `
+          <div class="grammar-card">
+            <div class="gc-pattern">${g.pattern}</div>
+            <div class="gc-title">${g.title}</div>
+            <div class="gc-explanation">${g.explanation}</div>
+            ${g.examples_ko ? `<div class="gc-examples">${(() => {
+              try {
+                const koArr = JSON.parse(g.examples_ko);
+                const zhArr = JSON.parse(g.examples_zh || '[]');
+                return koArr.map((k,i) => `<div class="gc-example-item"><span class="ge-ko">${k}</span><span class="ge-zh">${zhArr[i] || ''}</span></div>`).join('');
+              } catch(e) { return ''; }
+            })()}</div>` : ''}
+          </div>`).join('')}
+      `;
+    }
+    
+    let vocabHtml = '';
+    if (vocab && vocab.length) {
+      vocabHtml = `
+        <div class="section-header"><span class="section-title">本课词汇</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${vocab.map(v => `
+          <div class="card" style="padding:12px;text-align:center;cursor:pointer" onclick="KoreanTTS.speakWord('${escAttr(v.korean)}')">
+            <div style="font-family:var(--font-korean);font-size:1.0625rem;font-weight:600;color:var(--gold)">${v.korean}</div>
+            <div style="font-size:0.6875rem;color:var(--text-tertiary);margin:3px 0">${v.romanization || ''}</div>
+            <div style="font-size:0.8125rem;color:var(--text-secondary)">${v.chinese}</div>
+            ${v.part_of_speech ? `<div style="font-size:0.625rem;color:var(--gold);opacity:0.6;margin-top:2px">${v.part_of_speech}</div>` : ''}
+          </div>`).join('')}</div>
+      `;
+    }
+    
     container.innerHTML = `
       <div class="card">
         <div class="card-title">${lesson.title}</div>
-        <div style="font-size:13px;color:var(--text-light);margin-bottom:12px">⏱ ${Math.floor(lesson.duration/60)}分钟</div>
-        <div style="line-height:1.8;font-size:14px">${contentHtml}</div>
-        ${lesson.audio_url ? `<button class="audio-btn" style="margin-top:12px" onclick="KoreanTTS.speak('${lesson.title.replace(/'/g,"\\'")}')">🔊 播放发音</button>` : ''}
+        <div class="text-xs mb-8" style="color:var(--text-tertiary)">${Math.floor(lesson.duration/60)}分钟</div>
+        <div class="lesson-content">${(lesson.content || '').replace(/\n/g, '<br>').replace(/## (.+)/g, '<h2>$1</h2>').replace(/# (.+)/g, '<h1>$1</h1>').replace(/- (.+)/g, '<li>$1</li>')}</div>
       </div>
-      ${vocab && vocab.length ? `
-        <div class="card">
-          <div class="card-title">📖 本课词汇 (${vocab.length}个)</div>
-          <div class="vocab-grid">${vocab.map(v => `
-            <div class="vocab-card">
-              <span class="vc-speaker" onclick="event.stopPropagation();KoreanTTS.speakWord('${v.korean.replace(/'/g,"\\'")}')">🔊</span>
-              <div class="vc-korean">${v.korean}</div>
-              <div class="vc-rom">${v.romanization || ''}</div>
-              <div class="vc-chinese">${v.chinese}</div>
-              ${v.part_of_speech ? `<div class="vc-pos">${v.part_of_speech}</div>` : ''}
-              ${v.example_ko ? `<div class="vc-example" onclick="event.stopPropagation();KoreanTTS.speakSlow('${v.example_ko.replace(/'/g,"\\'")}')">💬 ${v.example_ko}<br>${v.example_zh || ''}</div>` : ''}
-            </div>`).join('')}</div>
-        </div>` : ''}
-      <button class="btn btn-primary" onclick="startQuiz(${lessonId})" style="margin:16px 0">✏️ 开始练习</button>
+      ${grammarHtml}
+      ${vocabHtml}
+      <button class="btn btn-primary mt-8" onclick="startQuiz(${lessonId})">开始练习</button>
+      <button class="btn btn-outline mt-8" style="width:100%" onclick="openVoiceForLesson(${lessonId})">发音练习</button>
     `;
-  } catch(e) { container.innerHTML = '<div class="empty">加载失败</div>'; console.error(e); }
+  } catch(e) { container.innerHTML = '<div class="empty-state"><div class="empty-text">加载失败</div></div>'; }
 }
 
-// ============ QUIZ ============
-function loadQuizEntry() {
-  const container = document.getElementById('quizContent');
-  container.innerHTML = `
-    <div class="empty"><div class="empty-icon">✏️</div><p>请从课程中选择一个课时进行练习</p></div>
-    <button class="btn btn-primary" onclick="switchTab('courses')" style="margin-top:8px">📚 去选课程</button>
-  `;
-}
-
+// ── QUIZ ──
 async function startQuiz(lessonId) {
   navigateTo('quiz', '练习');
   const container = document.getElementById('quizContent');
-  container.innerHTML = '<div class="loading"></div>';
+  container.innerHTML = '<div class="skeleton skeleton-card"></div>';
   try {
     const exercises = await api.getExercises(lessonId);
     if (!exercises || !exercises.length) {
-      container.innerHTML = '<div class="empty"><div class="empty-icon">📝</div>该课时暂无练习题</div>';
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">&#10003;</div><div class="empty-text">该课时暂无练习题</div></div>';
       return;
     }
-    quizState = { questions: exercises, currentIndex: 0, answers: [], lessonId };
+    quizState = { questions: exercises, currentIndex: 0, answers: [], lessonId, locked: false };
     renderQuizQuestion();
-  } catch(e) { container.innerHTML = '<div class="empty">加载失败</div>'; }
+  } catch(e) { container.innerHTML = '<div class="empty-state"><div class="empty-text">加载失败</div></div>'; }
 }
 
 function renderQuizQuestion() {
   const { questions, currentIndex } = quizState;
-  if (currentIndex >= questions.length) {
-    showQuizResult();
-    return;
-  }
+  if (currentIndex >= questions.length) { showQuizResult(); return; }
   const q = questions[currentIndex];
   const container = document.getElementById('quizContent');
-  const typeLabel = q.type === 'choice' ? '选择题' : q.type === 'fill' ? '填空题' : '听力题';
-  const progress = Math.round((currentIndex / questions.length) * 100);
-
-  let optionsHtml = '';
+  const progress = Math.round(currentIndex / questions.length * 100);
+  quizState.locked = false;
+  
+  let optsHtml = '';
   if (q.type === 'choice') {
     try {
-      const opts = JSON.parse(q.options);
-      optionsHtml = opts.map((o, i) => `
-        <div class="quiz-option" data-idx="${i}" onclick="selectOption(${i}, '${o.replace(/'/g,"\\'")}')">${String.fromCharCode(65+i)}. ${o}</div>
-      `).join('');
-    } catch(e) { optionsHtml = ''; }
-  } else if (q.type === 'fill') {
-    optionsHtml = `<input class="quiz-input" id="fillInput" placeholder="输入你的答案..." onkeydown="if(event.key==='Enter')submitFill()">
-      <button class="btn btn-primary" onclick="submitFill()">提交</button>`;
+      const opts = JSON.parse(q.options || '[]');
+      optsHtml = opts.map((o, i) => `
+        <div class="quiz-option" onclick="selectOption(${i}, '${escAttr(o)}')">
+          <span class="qo-letter">${String.fromCharCode(65+i)}</span> ${o}
+        </div>`).join('');
+    } catch(e) {}
   } else {
-    optionsHtml = `<button class="audio-btn" style="font-size:18px;padding:12px 20px" onclick="KoreanTTS.speak('${q.question.replace(/'/g,"\\'")}')">🔊 播放听力</button>
-      <input class="quiz-input" id="fillInput" placeholder="输入你听到的内容..." style="margin-top:12px" onkeydown="if(event.key==='Enter')submitFill()">
-      <button class="btn btn-primary" onclick="submitFill()">提交</button>`;
+    optsHtml = `
+      <div style="margin-bottom:12px">
+        <button class="tts-btn" style="font-size:1rem;padding:10px 16px" onclick="KoreanTTS.speak('${escAttr(q.question)}')">听发音</button>
+      </div>
+      <input class="quiz-input" id="fillInput" placeholder="输入你的答案..." onkeydown="if(event.key==='Enter')submitFill()">
+      <button class="btn btn-primary" onclick="submitFill()">提交</button>
+    `;
   }
-
+  
   container.innerHTML = `
-    <div class="quiz-progress"><div class="quiz-progress-bar" style="width:${progress}%"></div></div>
-    <div style="font-size:12px;color:var(--text-light);margin-bottom:8px">${typeLabel} · ${currentIndex+1}/${questions.length}</div>
-    <div class="quiz-question">${audioBtn(q.question)} ${q.question}</div>
-    ${optionsHtml}
+    <div class="quiz-progress"><div class="qp-fill" style="width:${progress}%"></div></div>
+    <div class="text-xs mb-8" style="color:var(--text-tertiary)">${q.type === 'choice' ? '选择题' : '填空题'} · ${currentIndex+1}/${questions.length}</div>
+    <div class="quiz-question">${q.question} ${q.type === 'choice' ? `<span class="tts-btn" style="margin-left:8px" onclick="event.stopPropagation();KoreanTTS.speak('${escAttr(q.question)}')">听</span>` : ''}</div>
+    ${optsHtml}
   `;
-  window._quizQuestion = q;
 }
 
-function audioBtn(text) {
-  if (!text) return '';
-  const hasKorean = /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(text);
-  return hasKorean ? `<span class="audio-btn" onclick="event.stopPropagation();KoreanTTS.speak('${text.replace(/'/g,"\\'")}')" style="margin-right:6px">🔊</span>` : '';
-}
-
-let optionSelected = false;
 function selectOption(idx, answer) {
-  if (optionSelected) return;
-  optionSelected = true;
-  const q = window._quizQuestion;
+  if (quizState.locked) return;
+  quizState.locked = true;
+  const q = quizState.questions[quizState.currentIndex];
   const isCorrect = answer === q.answer;
-  const el = document.querySelector(`.quiz-option[data-idx="${idx}"]`);
-  if (el) el.classList.add(isCorrect ? 'correct' : 'wrong');
+  
+  const opts = document.querySelectorAll('.quiz-option');
+  opts.forEach((o, i) => {
+    if (i === idx) o.classList.add(isCorrect ? 'correct' : 'wrong');
+    try {
+      const optText = JSON.parse(q.options || '[]')[i];
+      if (optText === q.answer) o.classList.add('correct');
+    } catch(e) {}
+  });
+  
   quizState.answers.push({ exercise_id: q.id, answer, is_correct: isCorrect });
-  // Also submit to API
   api.submitAnswer(q.id, answer).catch(() => {});
-  setTimeout(() => { optionSelected = false; quizState.currentIndex++; renderQuizQuestion(); }, 800);
+  
+  setTimeout(() => { quizState.currentIndex++; renderQuizQuestion(); }, 1200);
 }
 
 function submitFill() {
@@ -459,11 +754,11 @@ function submitFill() {
   if (!input) return;
   const answer = input.value.trim();
   if (!answer) { toast('请输入答案'); return; }
-  const q = window._quizQuestion;
+  const q = quizState.questions[quizState.currentIndex];
   const isCorrect = answer === q.answer;
   quizState.answers.push({ exercise_id: q.id, answer, is_correct: isCorrect });
   api.submitAnswer(q.id, answer).catch(() => {});
-  toast(isCorrect ? '✅ 正确!' : `❌ 正确答案: ${q.answer}`);
+  toast(isCorrect ? '正确!' : '正确答案: ' + q.answer);
   setTimeout(() => { quizState.currentIndex++; renderQuizQuestion(); }, 1200);
 }
 
@@ -474,202 +769,301 @@ function showQuizResult() {
   const total = answers.length;
   const score = total > 0 ? Math.round(correct / total * 100) : 0;
   const container = document.getElementById('quizResultContent');
-
-  // Update progress
+  
   if (quizState.lessonId) {
     api.updateProgress({ lesson_id: quizState.lessonId, status: 'completed', score }).catch(() => {});
   }
-
+  
+  let msg = '继续加油!';
+  if (score >= 90) msg = '太棒了!';
+  else if (score >= 70) msg = '做得不错!';
+  else if (score >= 50) msg = '还有进步空间!';
+  
   container.innerHTML = `
-    <div class="result-score">
-      <div class="result-circle">${score}</div>
-      <div style="font-size:16px;font-weight:600;margin-top:8px">
-        ${score >= 80 ? '🎉 훌륭해요! 太棒了!' : score >= 60 ? '👍 잘했어요! 不错!' : '💪 화이팅! 继续加油!'}
-      </div>
-      <div style="color:var(--text-light);margin-top:4px">答对 ${correct}/${total} 题</div>
+    <div class="result-header">
+      <div class="result-score-ring">${score}</div>
+      <div class="result-msg">${msg}</div>
+      <div class="result-stats">答对 ${correct}/${total} 题</div>
     </div>
     <div class="result-detail">
       ${answers.map((a, i) => {
         const q = quizState.questions[i];
-        return `<div class="detail-item ${a.is_correct ? 'correct' : 'wrong'}">
-          <div style="font-weight:600;margin-bottom:4px">${i+1}. ${q.question}</div>
-          <div style="font-size:13px">你的答案: <b style="color:${a.is_correct?'var(--success)':'var(--danger)'}">${a.answer}</b></div>
-          ${!a.is_correct ? `<div style="font-size:13px;color:var(--success)">正确答案: ${q.answer}</div>` : ''}
-          ${q.explanation ? `<div style="font-size:12px;color:var(--text-light);margin-top:4px">💡 ${q.explanation}</div>` : ''}
+        return `<div class="rd-item ${a.is_correct ? 'correct' : ''}">
+          <div class="rd-question">${i+1}. ${q.question}</div>
+          <div class="rd-answer">你的答案: ${a.answer}</div>
+          ${!a.is_correct ? `<div class="rd-correct">正确答案: ${q.answer}</div>` : ''}
         </div>`;
       }).join('')}
     </div>
-    <button class="btn btn-primary" onclick="startQuiz(${quizState.lessonId})" style="margin-top:16px">🔄 再练一次</button>
-    <button class="btn btn-outline" onclick="goBack()" style="margin-top:8px;width:100%">📖 返回课时</button>
+    <button class="btn btn-primary mt-8" onclick="startQuiz(${quizState.lessonId})">再练一次</button>
+    <button class="btn btn-outline mt-8" style="width:100%" onclick="goBack()">返回课时</button>
   `;
 }
 
-// ============ PROFILE ============
-async function loadProfileStats() {
+// ── VOICE ──
+async function loadVoicePage() {
   try {
-    const stats = await api.getProgress();
-    if (stats) {
-      document.getElementById('pLessons').textContent = stats.total_lessons;
-      document.getElementById('pCompleted').textContent = stats.completed_lessons;
-      document.getElementById('pVocab').textContent = stats.total_vocabulary;
-      document.getElementById('pRate').textContent = stats.correct_rate + '%';
+    const vocab = await api.request('/vocabulary?limit=10');
+    if (vocab && vocab.length) {
+      const list = vocab.slice(0, 8);
+      document.getElementById('voiceVocabList').innerHTML = list.map(v => `
+        <div class="card" style="padding:12px;cursor:pointer;margin-bottom:6px" onclick="setVoiceTarget('${escAttr(v.korean)}', '${escAttr((v.example_ko || v.korean))}')">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="flex:1">
+              <span style="font-family:var(--font-korean);font-weight:600;color:var(--gold)">${v.korean}</span>
+              <span style="font-size:0.75rem;color:var(--text-tertiary);margin-left:8px">${v.chinese}</span>
+            </div>
+            <span style="color:var(--text-tertiary);font-size:0.75rem">练习 &#8250;</span>
+          </div>
+        </div>`).join('');
     }
   } catch(e) {}
 }
 
-// ============ SONGS ============
-function loadSongList() {
-  const container = document.getElementById('songList');
-  container.innerHTML = songData.map(s => `
-    <div class="course-card" onclick="openSong(${s.id})">
-      <div class="cc-cover">${s.level === 1 ? '🎵' : s.level === 2 ? '🎶' : '🎤'}</div>
-      <div class="cc-info">
-        <div class="cc-title">${s.title}</div>
-        <div class="cc-meta">${s.artist} · ${s.desc.slice(0,40)}...</div>
-        <div style="margin-top:4px;font-size:11px;color:var(--accent)">Lv.${s.level} · ${s.lyrics.length}句</div>
-      </div>
-      <div style="color:var(--text-light);font-size:22px">›</div>
-    </div>`).join('');
+function openVoiceForLesson(lessonId) {
+  switchTab('voice');
+  api.getVocabulary(lessonId).then(vocab => {
+    if (vocab && vocab.length) {
+      setVoiceTarget(vocab[0].korean, vocab[0].example_ko || vocab[0].korean);
+    }
+  }).catch(() => {});
 }
 
-function openSong(songId) {
-  navigateTo('song-detail', '歌曲详情');
-  const song = songData.find(s => s.id === songId);
-  if (!song) return;
-  const container = document.getElementById('songDetailContent');
-  container.innerHTML = `
-    <div class="card">
-      <div class="card-title">${song.title} <span style="font-size:12px;color:var(--text-light)">— ${song.artist}</span></div>
-      <div class="card-subtitle">${song.desc}</div>
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="audio-btn" onclick="KoreanTTS.speakSlow('${song.title.replace(/'/g,"\\'")}')">🔊 歌名</button>
-        <button class="audio-btn" onclick="playSong(${songId})">▶️ 逐句播放</button>
-        <button class="audio-btn" onclick="startSongQuiz(${songId})">✏️ 歌词填空</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">📝 歌词</div>
-      ${song.lyrics.map((line, i) => `
-        <div class="lyric-line" style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="speakLine('${line.ko.replace(/'/g,"\\'")}')">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <span style="font-size:17px;font-weight:600;color:var(--primary)">${line.ko}</span>
-            <span class="audio-btn" style="font-size:14px">🔊</span>
-          </div>
-          <div style="font-size:13px;color:var(--text-light)">${line.zh}</div>
-          ${line.words.length ? `<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">${line.words.map(w => {
-            const [ko, zh] = w.split('=');
-            return `<span style="background:#e3f2fd;color:var(--primary);padding:2px 8px;border-radius:10px;font-size:11px;cursor:pointer" onclick="event.stopPropagation();KoreanTTS.speakWord('${ko.replace(/'/g,"\\'")}')">${ko}=${zh} 🔊</span>`;
-          }).join('')}</div>` : ''}
-        </div>`).join('')}
-    </div>
+function setVoiceTarget(korean, sentence) {
+  voiceTargetText = sentence || korean;
+  document.getElementById('voiceTargetText').innerHTML = `
+    <div style="font-family:var(--font-korean);font-size:1.5rem;font-weight:700;color:var(--gold);margin-bottom:4px">${korean}</div>
+    <div>练习句子: ${voiceTargetText}</div>
   `;
+  document.getElementById('btnSubmitVoice').disabled = false;
+  document.getElementById('voiceResult').innerHTML = '';
+  voiceBlob = null;
 }
 
-function speakLine(text) {
-  KoreanTTS.speakSlow(text);
+function playTargetAudio() {
+  if (voiceTargetText) KoreanTTS.speakSlow(voiceTargetText);
 }
 
-function playSong(songId) {
-  const song = songData.find(s => s.id === songId);
-  if (!song) return;
-  let i = 0;
-  function playNext() {
-    if (i >= song.lyrics.length) return;
-    KoreanTTS.speakSlow(song.lyrics[i].ko);
-    i++;
-    setTimeout(playNext, 3500);
-  }
-  playNext();
-  toast('▶️ 开始逐句播放');
-}
-
-// Song Quiz - Fill in the blank
-function startSongQuiz(songId) {
-  navigateTo('song-quiz', '歌词填空');
-  const song = songData.find(s => s.id === songId);
-  if (!song) return;
+async function toggleRecording() {
+  const btn = document.getElementById('btnRecord');
+  const status = document.getElementById('recordStatus');
+  const canvas = document.getElementById('voiceCanvas');
   
-  // Pick 4 random lines and blank out a word
-  const lines = [...song.lyrics].sort(() => Math.random() - 0.5).slice(0, Math.min(4, song.lyrics.length));
-  window._songQuiz = { song, lines, current: 0, score: 0 };
-  renderSongQuizQuestion();
-}
-
-function renderSongQuizQuestion() {
-  const quiz = window._songQuiz;
-  if (!quiz || quiz.current >= quiz.lines.length) {
-    showSongQuizResult();
-    return;
-  }
-  const line = quiz.lines[quiz.current];
-  // Pick a random word to blank
-  const words = line.ko.split(' ');
-  if (words.length < 2) { quiz.current++; renderSongQuizQuestion(); return; }
-  const blankIdx = Math.floor(Math.random() * words.length);
-  const answer = words[blankIdx];
-  // Create blanked line
-  const blankedWords = words.map((w, i) => i === blankIdx ? '_____' : w);
-  
-  const container = document.getElementById('songQuizContent');
-  container.innerHTML = `
-    <div class="quiz-progress"><div class="quiz-progress-bar" style="width:${Math.round(quiz.current/quiz.lines.length*100)}%"></div></div>
-    <div style="font-size:12px;color:var(--text-light);margin-bottom:8px">歌词填空 · ${quiz.current+1}/${quiz.lines.length}</div>
-    <div style="margin-bottom:8px;font-size:13px;color:var(--text-light)">💡 提示: ${line.zh}</div>
-    <div style="font-size:20px;font-weight:600;margin:16px 0;line-height:1.8;letter-spacing:2px">
-      ${blankedWords.join(' ')}
-    </div>
-    <button class="audio-btn" style="font-size:16px;padding:10px 16px;margin-bottom:12px" onclick="KoreanTTS.speakSlow('${line.ko.replace(/'/g,"\\'")}')">🔊 听完整句</button>
-    <input class="quiz-input" id="songFillInput" placeholder="输入缺失的韩语单词...">
-    <button class="btn btn-primary" onclick="checkSongFill('${answer.replace(/'/g,"\\'")}')">提交</button>
-  `;
-}
-
-function checkSongFill(answer) {
-  const input = document.getElementById('songFillInput');
-  if (!input) return;
-  const userAnswer = input.value.trim();
-  if (!userAnswer) { toast('请输入答案'); return; }
-  const quiz = window._songQuiz;
-  const isCorrect = userAnswer === answer;
-  if (isCorrect) quiz.score++;
-  toast(isCorrect ? '✅ 正确!' : `❌ 答案是: ${answer}`);
-  quiz.current++;
-  setTimeout(() => renderSongQuizQuestion(), 1000);
-}
-
-function showSongQuizResult() {
-  const quiz = window._songQuiz;
-  if (!quiz) return;
-  navigateTo('song-detail', quiz.song.title);
-  const score = quiz.score;
-  const total = quiz.lines.length;
-  toast(`🎵 歌词填空得分: ${score}/${total}`);
-  // Go back to song detail
-  setTimeout(() => openSong(quiz.song.id), 500);
-}
-
-// ============ GLOBAL CLICK (vocab speaker) ============
-document.addEventListener('click', function(e) {
-  const speaker = e.target.closest('.vc-speaker');
-  if (speaker) {
-    const card = speaker.closest('.vocab-card');
-    if (card) {
-      const korean = card.querySelector('.vc-korean')?.textContent;
-      const rom = card.querySelector('.vc-rom')?.textContent;
-      if (korean) KoreanTTS.speakWord(korean, rom);
+  if (VoiceRecorder.isRecording) {
+    voiceBlob = await VoiceRecorder.stop();
+    btn.classList.remove('recording');
+    status.textContent = '录音完成，点击提交评分';
+    document.getElementById('btnSubmitVoice').disabled = false;
+  } else {
+    if (!voiceTargetText) {
+      toast('请先选择练习词汇');
+      return;
+    }
+    try {
+      await VoiceRecorder.start(canvas);
+      btn.classList.add('recording');
+      status.textContent = '正在录音...';
+      document.getElementById('btnSubmitVoice').disabled = true;
+    } catch(e) {
+      toast('无法访问麦克风');
     }
   }
-});
+}
 
-// ============ KEYBOARD ============
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') goBack();
-});
+async function submitVoice() {
+  if (!voiceBlob) { toast('请先录音'); return; }
+  document.getElementById('btnSubmitVoice').disabled = true;
+  toast('正在评分...');
+  
+  try {
+    const result = await api.uploadPronunciation(voiceBlob, voiceTargetText);
+    if (result) {
+      document.getElementById('voiceResult').innerHTML = `
+        <div class="voice-score mt-16">
+          <div class="score-circle">${result.score}</div>
+          <div style="color:var(--text-secondary);margin-bottom:8px">${result.feedback}</div>
+          <div class="score-detail">
+            <div class="score-item"><div class="si-value">${result.accuracy}</div><div class="si-label">准确度</div></div>
+            <div class="score-item"><div class="si-value">${result.fluency}</div><div class="si-label">流利度</div></div>
+            <div class="score-item"><div class="si-value">${result.completeness}</div><div class="si-label">完整度</div></div>
+          </div>
+        </div>
+      `;
+    }
+  } catch(e) { toast('评分失败，请重试'); }
+  document.getElementById('btnSubmitVoice').disabled = false;
+}
 
-console.log('🇰🇷 文文的韩语老师 Ready!');
-console.log('API:', 'https://eterna-niannian.cloud/korean-api');
-console.log('Pages: home | courses | course-detail | lesson | quiz | quiz-result | profile');
-console.log('TTS: SpeechSynthesis ko-KR');
+// ── FLASHCARD ──
+async function loadFlashcards() {
+  const container = document.getElementById('flashcardContainer');
+  const empty = document.getElementById('flashcardEmpty');
+  const actions = document.getElementById('flashcardActions');
+  container.style.display = 'block';
+  empty.style.display = 'none';
+  actions.style.display = 'none';
+  document.getElementById('flashcard').classList.remove('flipped');
+  
+  try {
+    const [cards, stats] = await Promise.all([
+      api.getDueCards(),
+      api.getFlashcardStats()
+    ]);
+    
+    if (stats) {
+      document.getElementById('fcTotal').textContent = stats.total || 0;
+      document.getElementById('fcDue').textContent = stats.due || 0;
+      document.getElementById('fcMastered').textContent = stats.mastered || 0;
+    }
+    
+    if (!cards || !cards.length) {
+      container.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    
+    currentFlashcard = cards[0];
+    updateFlashcardUI(currentFlashcard);
+  } catch(e) {
+    container.style.display = 'none';
+    empty.style.display = 'block';
+  }
+}
+
+function updateFlashcardUI(card) {
+  document.getElementById('fcKorean').textContent = card.korean;
+  document.getElementById('fcRom').textContent = card.romanization || '';
+  document.getElementById('fcPos').textContent = card.part_of_speech || '';
+  document.getElementById('fcChinese').textContent = card.chinese;
+  document.getElementById('fcExample').innerHTML = (card.example_ko || '') + '<br>' + (card.example_zh || '');
+}
+
+function flipCard() {
+  document.getElementById('flashcard').classList.toggle('flipped');
+  document.getElementById('flashcardActions').style.display = 
+    document.getElementById('flashcard').classList.contains('flipped') ? 'flex' : 'none';
+}
+
+function playFcAudio() {
+  if (currentFlashcard) KoreanTTS.speakWord(currentFlashcard.korean);
+}
+
+async function rateCard(quality) {
+  if (!currentFlashcard) return;
+  try {
+    await api.reviewCard(currentFlashcard.vocab_id, quality);
+    loadFlashcards();
+  } catch(e) { toast('操作失败'); }
+}
+
+// ── DAILY ──
+async function loadDaily() {
+  try {
+    const challenge = await api.getDaily();
+    if (challenge) {
+      document.getElementById('dailyQuestion').textContent = challenge.question;
+      document.getElementById('dailyType').textContent = challenge.type === 'vocab' ? '词汇' : challenge.type === 'grammar' ? '语法' : '文化';
+      document.getElementById('dailyAnswer').value = '';
+      document.getElementById('dailyResult').style.display = 'none';
+      document.getElementById('dailyCard').style.display = 'block';
+    }
+    
+    const streak = await api.getStreak();
+    if (streak) {
+      document.getElementById('dailyStreakCount').textContent = streak.current_streak || 0;
+      document.getElementById('dailyLongestStreak').textContent = streak.longest_streak || 0;
+      document.getElementById('dailyTotalXP').textContent = streak.total_xp || 0;
+    }
+  } catch(e) {}
+}
+
+async function submitDaily() {
+  const answer = document.getElementById('dailyAnswer').value.trim();
+  if (!answer) { toast('请输入答案'); return; }
+  try {
+    const challenge = await api.getDaily();
+    const result = await api.submitDaily(challenge.id, answer);
+    if (result) {
+      document.getElementById('dailyCard').style.display = 'none';
+      document.getElementById('dailyResult').style.display = 'block';
+      document.getElementById('dailyResult').innerHTML = `
+        <div class="card ${result.is_correct ? 'card-gold' : ''}">
+          <div class="text-center" style="font-size:1.5rem;margin-bottom:8px">${result.is_correct ? '正确!' : '错误'}</div>
+          <div class="text-center" style="color:var(--text-secondary);margin-bottom:4px">${result.explanation}</div>
+          <div class="text-center" style="color:var(--gold);font-weight:700">+${result.xp_gained} XP</div>
+          <div class="text-center text-xs mt-4" style="color:var(--text-tertiary)">连续打卡 ${result.streak} 天</div>
+        </div>
+      `;
+      loadDaily(); // Refresh streak
+      loadHomePage();
+    }
+  } catch(e) { toast('提交失败'); }
+}
+
+// ── ACHIEVEMENTS ──
+async function loadAchievements() {
+  try {
+    const achievements = await api.getAchievements();
+    if (achievements && achievements.length) {
+      const totalXP = achievements.filter(a => a.unlocked).reduce((sum, a) => sum + (a.xp_reward || 0), 0);
+      document.getElementById('achXPTotal').textContent = totalXP + ' XP';
+      
+      document.getElementById('achievementGrid').innerHTML = achievements.map(a => `
+        <div class="achievement-badge ${a.unlocked ? 'unlocked' : 'locked'}">
+          <div class="ab-icon">${getAchievementIcon(a.icon)}</div>
+          <div class="ab-title">${a.title}</div>
+        </div>`).join('');
+    }
+  } catch(e) {}
+}
+
+function getAchievementIcon(icon) {
+  const map = { fire: '★', calendar: '■', star: '☆', crown: '♛', bolt: '⚡', gem: '◆', book: '■', graduate: '▲', pencil: '○', trophy: '★' };
+  return map[icon] || '★';
+}
+
+// ── PROFILE ──
+async function loadProfile() {
+  try {
+    const [stats, streak] = await Promise.all([
+      api.getProgress(),
+      api.getStreak().catch(() => null)
+    ]);
+    
+    if (stats) {
+      document.getElementById('pLessons').textContent = (stats.completed_lessons || 0) + '/' + (stats.total_lessons || 0);
+      document.getElementById('pVocab').textContent = stats.total_vocabulary || 0;
+    }
+    
+    if (streak) {
+      document.getElementById('pStreak').textContent = streak.current_streak || 0;
+      document.getElementById('profileXPBar').style.width = Math.min(100, ((streak.total_xp || 0) % 100)) + '%';
+      document.getElementById('profileXPText').textContent = 'XP ' + (streak.total_xp || 0);
+    }
+    
+    try {
+      const ach = await api.getAchievements();
+      const unlocked = ach ? ach.filter(a => a.unlocked).length : 0;
+      document.getElementById('pAchievements').textContent = unlocked + '/' + (ach ? ach.length : 0);
+    } catch(e) {}
+    
+  } catch(e) {}
+}
+
+// ── SETTINGS ──
+function setTtsRate(rate) {
+  ttsRate = rate;
+  toast('语速已设置');
+}
+
+// ── HELPERS ──
+function escAttr(s) {
+  if (!s) return '';
+  return s.replace(/'/g, "\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
+}
+
+console.log('Korean Academy v2 Ready');
+console.log('Pages: home | courses | course-detail | lesson | quiz | quiz-result | voice | flashcard | daily | achievements | profile');
 </script>
 </body>
 </html>

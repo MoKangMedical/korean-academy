@@ -1,4 +1,4 @@
-// Korean Academy Web - API Client
+// 文文的韩语老师 - API Client
 const API_BASE = 'http://43.134.3.158:8104';
 
 const api = {

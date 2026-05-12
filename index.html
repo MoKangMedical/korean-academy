@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>韩语学习 - Korean Academy</title>
+<title>文文的韩语老师</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
 <!-- ===== TOP BAR ===== -->
 <header class="top-bar" id="topBar">
   <span class="back-btn" id="backBtn" style="visibility:hidden">‹</span>
-  <h1 id="topTitle">韩语学习</h1>
+  <h1 id="topTitle">文文的韩语老师</h1>
   <span style="width:36px"></span>
 </header>
 
@@ -22,8 +22,8 @@
 <section class="page active" id="page-home">
   <div class="profile-header" style="padding:10px 0">
     <div class="profile-avatar">🇰🇷</div>
-    <div class="profile-name" id="homeNickname">韩语学习者</div>
-    <div class="profile-level">Level <span id="homeLevel">1</span> · 继续加油!</div>
+    <div class="profile-name" id="homeNickname">文文</div>
+    <div class="profile-level">Level <span id="homeLevel">1</span> · 화이팅! 💪</div>
   </div>
   <div class="card">
     <div class="card-title">📊 学习统计</div>
@@ -99,7 +99,7 @@
 <section class="page" id="page-profile">
   <div class="profile-header">
     <div class="profile-avatar">🇰🇷</div>
-    <div class="profile-name" id="profileName">韩语学习者</div>
+    <div class="profile-name" id="profileName">文文</div>
     <div class="profile-level">Level 1</div>
   </div>
   <div class="stats-grid">
@@ -175,7 +175,7 @@ async function doMockLogin() {
 function switchTab(tab) {
   // Reset sub-page state
   document.getElementById('backBtn').style.visibility = 'hidden';
-  document.getElementById('topTitle').textContent = '韩语学习';
+  document.getElementById('topTitle').textContent = '文文的韩语老师';
 
   if (tab === 'quiz-main') {
     // Show quiz entry page
@@ -666,7 +666,7 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') goBack();
 });
 
-console.log('🇰🇷 Korean Academy Web App Ready!');
+console.log('🇰🇷 文文的韩语老师 Ready!');
 console.log('API:', 'http://43.134.3.158:8104');
 console.log('Pages: home | courses | course-detail | lesson | quiz | quiz-result | profile');
 console.log('TTS: SpeechSynthesis ko-KR');

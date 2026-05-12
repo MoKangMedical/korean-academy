@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>韩语学习 - Korean Academy</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app" data-page="home" data-params="{}">
+
+<!-- ===== TOP BAR ===== -->
+<header class="top-bar" id="topBar">
+  <span class="back-btn" id="backBtn" style="visibility:hidden">‹</span>
+  <h1 id="topTitle">韩语学习</h1>
+  <span style="width:36px"></span>
+</header>
+
+<!-- ===== PAGES ===== -->
+
+<!-- HOME PAGE -->
+<section class="page active" id="page-home">
+  <div class="profile-header" style="padding:10px 0">
+    <div class="profile-avatar">🇰🇷</div>
+    <div class="profile-name" id="homeNickname">韩语学习者</div>
+    <div class="profile-level">Level <span id="homeLevel">1</span> · 继续加油!</div>
+  </div>
+  <div class="card">
+    <div class="card-title">📊 学习统计</div>
+    <div class="stats-grid" style="margin:10px 0">
+      <div class="stat-item"><div class="stat-value" id="statLessons">15</div><div class="stat-label">总课时</div></div>
+      <div class="stat-item"><div class="stat-value" id="statCompleted">0</div><div class="stat-label">已完成</div></div>
+      <div class="stat-item"><div class="stat-value" id="statVocab">36</div><div class="stat-label">总词汇</div></div>
+      <div class="stat-item"><div class="stat-value" id="statRate">-</div><div class="stat-label">正确率</div></div>
+    </div>
+  </div>
+  <div class="btn btn-primary" onclick="switchTab('courses')" style="margin-top:12px">📚 开始学习</div>
+  <div style="margin-top:16px">
+    <div class="card-title">🔥 推荐课程</div>
+    <div id="homeCourses"></div>
+  </div>
+</section>
+
+<!-- COURSES PAGE -->
+<section class="page" id="page-courses">
+  <div class="page-title">全部课程</div>
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <button class="btn btn-outline" style="font-size:13px;padding:8px 16px" onclick="loadCourses(0)">全部</button>
+    <button class="btn btn-outline" style="font-size:13px;padding:8px 16px" onclick="loadCourses(1)">入门</button>
+    <button class="btn btn-outline" style="font-size:13px;padding:8px 16px" onclick="loadCourses(2)">初级</button>
+  </div>
+  <div id="coursesList"></div>
+</section>
+
+<!-- COURSE DETAIL PAGE -->
+<section class="page" id="page-course-detail">
+  <div id="courseDetail"></div>
+</section>
+
+<!-- LESSON PAGE -->
+<section class="page" id="page-lesson">
+  <div id="lessonContent"></div>
+</section>
+
+<!-- VOCABULARY PAGE -->
+<section class="page" id="page-vocabulary">
+  <div class="page-title">📖 词汇学习</div>
+  <div id="vocabContent"></div>
+</section>
+
+<!-- QUIZ PAGE -->
+<section class="page" id="page-quiz">
+  <div class="page-title">✏️ 练习</div>
+  <div id="quizContent"></div>
+</section>
+
+<!-- QUIZ RESULT PAGE -->
+<section class="page" id="page-quiz-result">
+  <div id="quizResultContent"></div>
+</section>
+
+<!-- PROFILE PAGE -->
+<section class="page" id="page-profile">
+  <div class="profile-header">
+    <div class="profile-avatar">🇰🇷</div>
+    <div class="profile-name" id="profileName">韩语学习者</div>
+    <div class="profile-level">Level 1</div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-item"><div class="stat-value" id="pLessons">15</div><div class="stat-label">总课时</div></div>
+    <div class="stat-item"><div class="stat-value" id="pCompleted">0</div><div class="stat-label">已完成</div></div>
+    <div class="stat-item"><div class="stat-value" id="pVocab">36</div><div class="stat-label">总词汇</div></div>
+    <div class="stat-item"><div class="stat-value" id="pRate">-</div><div class="stat-label">正确率</div></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">⚙️ 设置</div>
+    <div style="padding:12px 0;color:var(--text-light);font-size:13px">语音语速: 
+      <button class="audio-btn" onclick="ttsRate=0.55;toast('语速: 慢速')" style="margin:0 4px">慢</button>
+      <button class="audio-btn" onclick="ttsRate=0.85;toast('语速: 正常')" style="margin:0 4px">正常</button>
+      <button class="audio-btn" onclick="ttsRate=1.1;toast('语速: 快速')" style="margin:0 4px">快</button>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="doMockLogin()" style="margin-top:16px">🔄 重新登录</button>
+</section>
+
+<!-- ===== TAB BAR ===== -->
+<nav class="tab-bar">
+  <div class="tab-item active" data-tab="home" onclick="switchTab('home')">
+    <span class="tab-icon">🏠</span>学习
+  </div>
+  <div class="tab-item" data-tab="courses" onclick="switchTab('courses')">
+    <span class="tab-icon">📚</span>课程
+  </div>
+  <div class="tab-item" data-tab="quiz" onclick="switchTab('quiz-main')">
+    <span class="tab-icon">✏️</span>练习
+  </div>
+  <div class="tab-item" data-tab="profile" onclick="switchTab('profile')">
+    <span class="tab-icon">👤</span>我的
+  </div>
+</nav>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+</div><!-- /#app -->
+
+<script src="js/api.js"></script>
+<script>
+// ============ APP STATE ============
+let currentPage = 'home';
+let courseData = [];
+let currentCourse = null;
+let currentLesson = null;
+let ttsRate = 0.85;
+let quizState = { questions: [], currentIndex: 0, answers: [], lessonId: null };
+
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded', () => {
+  doMockLogin().then(() => {
+    loadHomeStats();
+    loadCourses(0);
+  });
+});
+
+// ============ MOCK LOGIN ============
+async function doMockLogin() {
+  const code = 'web_' + Date.now();
+  const data = await api.login(code);
+  if (data && data.user) {
+    document.getElementById('homeNickname').textContent = data.user.nickname;
+    document.getElementById('homeLevel').textContent = data.user.level;
+    document.getElementById('profileName').textContent = data.user.nickname;
+  }
+  return data;
+}
+
+// ============ NAVIGATION ============
+function switchTab(tab) {
+  // Reset sub-page state
+  document.getElementById('backBtn').style.visibility = 'hidden';
+  document.getElementById('topTitle').textContent = '韩语学习';
+
+  if (tab === 'quiz-main') {
+    // Show quiz entry page
+    showPage('quiz');
+    loadQuizEntry();
+  } else {
+    showPage(tab);
+  }
+
+  // Update tab bar
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  const activeTab = document.querySelector(`.tab-item[data-tab="${tab}"]`);
+  if (activeTab) activeTab.classList.add('active');
+  else {
+    // Map quiz-main to quiz tab
+    const qt = document.querySelector('.tab-item[data-tab="quiz"]');
+    if (qt && tab === 'quiz-main') qt.classList.add('active');
+  }
+
+  currentPage = tab === 'quiz-main' ? 'quiz' : tab;
+  if (tab === 'home') loadHomeStats();
+  if (tab === 'courses') loadCourses(0);
+  if (tab === 'profile') loadProfileStats();
+}
+
+function navigateTo(page, title, params = {}) {
+  document.getElementById('backBtn').style.visibility = 'visible';
+  document.getElementById('topTitle').textContent = title;
+  showPage(page);
+  currentPage = page;
+  window._navParams = params;
+}
+
+function goBack() {
+  if (currentPage === 'course-detail') switchTab('courses');
+  else if (currentPage === 'lesson') navigateTo('course-detail', currentCourse?.title || '课程详情');
+  else if (currentPage === 'vocabulary') navigateTo('lesson', currentLesson?.title || '课时');
+  else if (currentPage === 'quiz-result') navigateTo('lesson', currentLesson?.title || '课时');
+  else if (currentPage === 'quiz') switchTab('home');
+  else switchTab('home');
+}
+
+document.getElementById('backBtn').addEventListener('click', goBack);
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ============ TOAST ============
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ============ HOME ============
+async function loadHomeStats() {
+  try {
+    const stats = await api.getProgress();
+    if (stats) {
+      document.getElementById('statLessons').textContent = stats.total_lessons;
+      document.getElementById('statCompleted').textContent = stats.completed_lessons;
+      document.getElementById('statVocab').textContent = stats.total_vocabulary;
+      document.getElementById('statRate').textContent = stats.correct_rate + '%';
+    }
+    // Load course cards
+    const courses = await api.getCourses();
+    if (courses && courses.length) {
+      const html = courses.slice(0, 2).map(c => `
+        <div class="course-card" onclick="openCourse(${c.id})">
+          <div class="cc-cover">📗</div>
+          <div class="cc-info">
+            <div class="cc-title">${c.title}</div>
+            <div class="cc-meta">${c.subtitle || ''} · ${c.unit_count}单元</div>
+          </div>
+        </div>`).join('');
+      document.getElementById('homeCourses').innerHTML = html;
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ============ COURSES ============
+async function loadCourses(level) {
+  const container = document.getElementById('coursesList');
+  container.innerHTML = '<div class="loading"></div>';
+  try {
+    const url = level > 0 ? `/api/courses?level=${level}` : '/api/courses';
+    const data = await api.request(url);
+    if (data && data.length) {
+      courseData = data;
+      container.innerHTML = data.map(c => `
+        <div class="course-card" onclick="openCourse(${c.id})">
+          <div class="cc-cover">${c.level === 1 ? '📗' : c.level === 2 ? '📘' : '📕'}</div>
+          <div class="cc-info">
+            <div class="cc-title">${c.title}</div>
+            <div class="cc-meta">${c.subtitle || ''} · ${c.unit_count}单元 · Lv.${c.level}</div>
+          </div>
+          <div style="color:var(--text-light);font-size:22px">›</div>
+        </div>`).join('');
+    } else {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">📚</div>暂无课程</div>';
+    }
+  } catch(e) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>加载失败，请检查网络</div>';
+  }
+}
+
+// ============ COURSE DETAIL ============
+function openCourse(courseId) {
+  loadCourseDetail(courseId);
+}
+
+async function loadCourseDetail(courseId) {
+  navigateTo('course-detail', '课程详情');
+  const container = document.getElementById('courseDetail');
+  container.innerHTML = '<div class="loading"></div>';
+  try {
+    const data = await api.getCourseDetail(courseId);
+    if (!data) { container.innerHTML = '<div class="empty">课程不存在</div>'; return; }
+    currentCourse = data;
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-title">${data.title}</div>
+        <div class="card-subtitle">${data.description || ''}</div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text-light)">${data.unit_count}单元 · Lv.${data.level}</div>
+      </div>
+      ${(data.units || []).map((u, ui) => `
+        <div class="unit-item">
+          <div class="unit-header" onclick="toggleUnit(this)">
+            <span class="unit-title">📖 ${u.title}</span>
+            <span class="unit-count">${u.lesson_count || 0}课时 ▾</span>
+          </div>
+          <div class="lesson-list">
+            ${(u.lessons || []).map(l => `
+              <div class="lesson-item" onclick="event.stopPropagation(); openLesson(${l.id}, '${l.title.replace(/'/g,"\\'")}')">
+                <span class="li-icon">📝</span>
+                <span class="li-title">${l.title}</span>
+                <span class="li-duration">${Math.floor(l.duration/60)}分</span>
+              </div>`).join('')}
+          </div>
+        </div>`).join('')}
+    `;
+  } catch(e) { container.innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+function toggleUnit(header) {
+  const list = header.nextElementSibling;
+  list.classList.toggle('open');
+  header.querySelector('.unit-count').textContent = list.classList.contains('open')
+    ? header.querySelector('.unit-count').textContent.replace('▾','▴')
+    : header.querySelector('.unit-count').textContent.replace('▴','▾');
+}
+
+// ============ LESSON ============
+async function openLesson(lessonId, title) {
+  navigateTo('lesson', title || '课时');
+  currentLesson = { id: lessonId, title: title };
+  const container = document.getElementById('lessonContent');
+  container.innerHTML = '<div class="loading"></div>';
+  try {
+    const [lesson, vocab] = await Promise.all([
+      api.getLesson(lessonId),
+      api.getVocabulary(lessonId)
+    ]);
+    if (!lesson) { container.innerHTML = '<div class="empty">课时不存在</div>'; return; }
+    currentLesson = lesson;
+    const contentHtml = (lesson.content || '').replace(/\n/g, '<br>');
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-title">${lesson.title}</div>
+        <div style="font-size:13px;color:var(--text-light);margin-bottom:12px">⏱ ${Math.floor(lesson.duration/60)}分钟</div>
+        <div style="line-height:1.8;font-size:14px">${contentHtml}</div>
+        ${lesson.audio_url ? `<button class="audio-btn" style="margin-top:12px" onclick="KoreanTTS.speak('${lesson.title.replace(/'/g,"\\'")}')">🔊 播放发音</button>` : ''}
+      </div>
+      ${vocab && vocab.length ? `
+        <div class="card">
+          <div class="card-title">📖 本课词汇 (${vocab.length}个)</div>
+          <div class="vocab-grid">${vocab.map(v => `
+            <div class="vocab-card">
+              <span class="vc-speaker" onclick="event.stopPropagation();KoreanTTS.speakWord('${v.korean.replace(/'/g,"\\'")}')">🔊</span>
+              <div class="vc-korean">${v.korean}</div>
+              <div class="vc-rom">${v.romanization || ''}</div>
+              <div class="vc-chinese">${v.chinese}</div>
+              ${v.part_of_speech ? `<div class="vc-pos">${v.part_of_speech}</div>` : ''}
+              ${v.example_ko ? `<div class="vc-example" onclick="event.stopPropagation();KoreanTTS.speakSlow('${v.example_ko.replace(/'/g,"\\'")}')">💬 ${v.example_ko}<br>${v.example_zh || ''}</div>` : ''}
+            </div>`).join('')}</div>
+        </div>` : ''}
+      <button class="btn btn-primary" onclick="startQuiz(${lessonId})" style="margin:16px 0">✏️ 开始练习</button>
+    `;
+  } catch(e) { container.innerHTML = '<div class="empty">加载失败</div>'; console.error(e); }
+}
+
+// ============ QUIZ ============
+function loadQuizEntry() {
+  const container = document.getElementById('quizContent');
+  container.innerHTML = `
+    <div class="empty"><div class="empty-icon">✏️</div><p>请从课程中选择一个课时进行练习</p></div>
+    <button class="btn btn-primary" onclick="switchTab('courses')" style="margin-top:8px">📚 去选课程</button>
+  `;
+}
+
+async function startQuiz(lessonId) {
+  navigateTo('quiz', '练习');
+  const container = document.getElementById('quizContent');
+  container.innerHTML = '<div class="loading"></div>';
+  try {
+    const exercises = await api.getExercises(lessonId);
+    if (!exercises || !exercises.length) {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">📝</div>该课时暂无练习题</div>';
+      return;
+    }
+    quizState = { questions: exercises, currentIndex: 0, answers: [], lessonId };
+    renderQuizQuestion();
+  } catch(e) { container.innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+function renderQuizQuestion() {
+  const { questions, currentIndex } = quizState;
+  if (currentIndex >= questions.length) {
+    showQuizResult();
+    return;
+  }
+  const q = questions[currentIndex];
+  const container = document.getElementById('quizContent');
+  const typeLabel = q.type === 'choice' ? '选择题' : q.type === 'fill' ? '填空题' : '听力题';
+  const progress = Math.round((currentIndex / questions.length) * 100);
+
+  let optionsHtml = '';
+  if (q.type === 'choice') {
+    try {
+      const opts = JSON.parse(q.options);
+      optionsHtml = opts.map((o, i) => `
+        <div class="quiz-option" data-idx="${i}" onclick="selectOption(${i}, '${o.replace(/'/g,"\\'")}')">${String.fromCharCode(65+i)}. ${o}</div>
+      `).join('');
+    } catch(e) { optionsHtml = ''; }
+  } else if (q.type === 'fill') {
+    optionsHtml = `<input class="quiz-input" id="fillInput" placeholder="输入你的答案..." onkeydown="if(event.key==='Enter')submitFill()">
+      <button class="btn btn-primary" onclick="submitFill()">提交</button>`;
+  } else {
+    optionsHtml = `<button class="audio-btn" style="font-size:18px;padding:12px 20px" onclick="KoreanTTS.speak('${q.question.replace(/'/g,"\\'")}')">🔊 播放听力</button>
+      <input class="quiz-input" id="fillInput" placeholder="输入你听到的内容..." style="margin-top:12px" onkeydown="if(event.key==='Enter')submitFill()">
+      <button class="btn btn-primary" onclick="submitFill()">提交</button>`;
+  }
+
+  container.innerHTML = `
+    <div class="quiz-progress"><div class="quiz-progress-bar" style="width:${progress}%"></div></div>
+    <div style="font-size:12px;color:var(--text-light);margin-bottom:8px">${typeLabel} · ${currentIndex+1}/${questions.length}</div>
+    <div class="quiz-question">${audioBtn(q.question)} ${q.question}</div>
+    ${optionsHtml}
+  `;
+  window._quizQuestion = q;
+}
+
+function audioBtn(text) {
+  if (!text) return '';
+  const hasKorean = /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(text);
+  return hasKorean ? `<span class="audio-btn" onclick="event.stopPropagation();KoreanTTS.speak('${text.replace(/'/g,"\\'")}')" style="margin-right:6px">🔊</span>` : '';
+}
+
+let optionSelected = false;
+function selectOption(idx, answer) {
+  if (optionSelected) return;
+  optionSelected = true;
+  const q = window._quizQuestion;
+  const isCorrect = answer === q.answer;
+  const el = document.querySelector(`.quiz-option[data-idx="${idx}"]`);
+  if (el) el.classList.add(isCorrect ? 'correct' : 'wrong');
+  quizState.answers.push({ exercise_id: q.id, answer, is_correct: isCorrect });
+  // Also submit to API
+  api.submitAnswer(q.id, answer).catch(() => {});
+  setTimeout(() => { optionSelected = false; quizState.currentIndex++; renderQuizQuestion(); }, 800);
+}
+
+function submitFill() {
+  const input = document.getElementById('fillInput');
+  if (!input) return;
+  const answer = input.value.trim();
+  if (!answer) { toast('请输入答案'); return; }
+  const q = window._quizQuestion;
+  const isCorrect = answer === q.answer;
+  quizState.answers.push({ exercise_id: q.id, answer, is_correct: isCorrect });
+  api.submitAnswer(q.id, answer).catch(() => {});
+  toast(isCorrect ? '✅ 正确!' : `❌ 正确答案: ${q.answer}`);
+  setTimeout(() => { quizState.currentIndex++; renderQuizQuestion(); }, 1200);
+}
+
+function showQuizResult() {
+  navigateTo('quiz-result', '练习结果');
+  const answers = quizState.answers;
+  const correct = answers.filter(a => a.is_correct).length;
+  const total = answers.length;
+  const score = total > 0 ? Math.round(correct / total * 100) : 0;
+  const container = document.getElementById('quizResultContent');
+
+  // Update progress
+  if (quizState.lessonId) {
+    api.updateProgress({ lesson_id: quizState.lessonId, status: 'completed', score }).catch(() => {});
+  }
+
+  container.innerHTML = `
+    <div class="result-score">
+      <div class="result-circle">${score}</div>
+      <div style="font-size:16px;font-weight:600;margin-top:8px">
+        ${score >= 80 ? '🎉 훌륭해요! 太棒了!' : score >= 60 ? '👍 잘했어요! 不错!' : '💪 화이팅! 继续加油!'}
+      </div>
+      <div style="color:var(--text-light);margin-top:4px">答对 ${correct}/${total} 题</div>
+    </div>
+    <div class="result-detail">
+      ${answers.map((a, i) => {
+        const q = quizState.questions[i];
+        return `<div class="detail-item ${a.is_correct ? 'correct' : 'wrong'}">
+          <div style="font-weight:600;margin-bottom:4px">${i+1}. ${q.question}</div>
+          <div style="font-size:13px">你的答案: <b style="color:${a.is_correct?'var(--success)':'var(--danger)'}">${a.answer}</b></div>
+          ${!a.is_correct ? `<div style="font-size:13px;color:var(--success)">正确答案: ${q.answer}</div>` : ''}
+          ${q.explanation ? `<div style="font-size:12px;color:var(--text-light);margin-top:4px">💡 ${q.explanation}</div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>
+    <button class="btn btn-primary" onclick="startQuiz(${quizState.lessonId})" style="margin-top:16px">🔄 再练一次</button>
+    <button class="btn btn-outline" onclick="goBack()" style="margin-top:8px;width:100%">📖 返回课时</button>
+  `;
+}
+
+// ============ PROFILE ============
+async function loadProfileStats() {
+  try {
+    const stats = await api.getProgress();
+    if (stats) {
+      document.getElementById('pLessons').textContent = stats.total_lessons;
+      document.getElementById('pCompleted').textContent = stats.completed_lessons;
+      document.getElementById('pVocab').textContent = stats.total_vocabulary;
+      document.getElementById('pRate').textContent = stats.correct_rate + '%';
+    }
+  } catch(e) {}
+}
+
+// ============ GLOBAL CLICK (vocab speaker) ============
+document.addEventListener('click', function(e) {
+  const speaker = e.target.closest('.vc-speaker');
+  if (speaker) {
+    const card = speaker.closest('.vocab-card');
+    if (card) {
+      const korean = card.querySelector('.vc-korean')?.textContent;
+      const rom = card.querySelector('.vc-rom')?.textContent;
+      if (korean) KoreanTTS.speakWord(korean, rom);
+    }
+  }
+});
+
+// ============ KEYBOARD ============
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') goBack();
+});
+
+console.log('🇰🇷 Korean Academy Web App Ready!');
+console.log('API:', 'http://43.134.3.158:8104');
+console.log('Pages: home | courses | course-detail | lesson | quiz | quiz-result | profile');
+console.log('TTS: SpeechSynthesis ko-KR');
+</script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 // 文文的韩语老师 - API Client
-const API_BASE = 'https://eterna-niannian.cloud/korean-api';
+const API_BASE = '/korean-api';
 
 const api = {
   async request(url, options = {}) {
@@ -21,7 +21,7 @@ const api = {
 
   // Auth
   async login(code) {
-    const data = await this.request('/api/auth/wx-login', { method: 'POST', data: { code } });
+    const data = await this.request('/auth/wx-login', { method: 'POST', data: { code } });
     if (data && data.token) {
       localStorage.setItem('ka_token', data.token);
       localStorage.setItem('ka_user', JSON.stringify(data.user));
@@ -30,24 +30,24 @@ const api = {
   },
 
   // Courses
-  getCourses() { return this.request('/api/courses'); },
-  getCourseDetail(id) { return this.request(`/api/courses/${id}`); },
-  getLesson(id) { return this.request(`/api/courses/lessons/${id}`); },
+  getCourses() { return this.request('/courses'); },
+  getCourseDetail(id) { return this.request(`/courses/${id}`); },
+  getLesson(id) { return this.request(`/courses/lessons/${id}`); },
 
   // Vocabulary
-  getVocabulary(lessonId) { return this.request(`/api/vocabulary?lesson_id=${lessonId}`); },
+  getVocabulary(lessonId) { return this.request(`/vocabulary?lesson_id=${lessonId}`); },
 
   // Quiz
-  getExercises(lessonId) { return this.request(`/api/quiz/exercises?lesson_id=${lessonId}`); },
+  getExercises(lessonId) { return this.request(`/quiz/exercises?lesson_id=${lessonId}`); },
   async submitAnswer(exerciseId, answer) {
-    return this.request('/api/quiz/submit', { method: 'POST', data: { exercise_id: exerciseId, answer } });
+    return this.request('/quiz/submit', { method: 'POST', data: { exercise_id: exerciseId, answer } });
   },
-  getQuizResult(lessonId) { return this.request(`/api/quiz/result?lesson_id=${lessonId}`); },
+  getQuizResult(lessonId) { return this.request(`/quiz/result?lesson_id=${lessonId}`); },
 
   // Progress
-  getProgress() { return this.request('/api/progress'); },
+  getProgress() { return this.request('/progress'); },
   async updateProgress(data) {
-    return this.request('/api/progress/update', { method: 'POST', data });
+    return this.request('/progress/update', { method: 'POST', data });
   }
 };
 

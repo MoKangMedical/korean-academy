@@ -267,7 +267,7 @@ async function loadCourses(level) {
   const container = document.getElementById('coursesList');
   container.innerHTML = '<div class="loading"></div>';
   try {
-    const url = level > 0 ? `/api/courses?level=${level}` : '/api/courses';
+    const url = level > 0 ? `/courses?level=${level}` : '/courses';
     const data = await api.request(url);
     if (data && data.length) {
       courseData = data;

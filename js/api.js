@@ -4,7 +4,7 @@
 // API_BASE proxies to FastAPI backend on port 8104
 // ============================================================
 
-const API_BASE = '/korean-api';
+const API_BASE = 'https://eterna-niannian.cloud/korean-api';
 
 // ─── Core request helper ────────────────────────────────────
 const api = {
@@ -160,61 +160,172 @@ const api = {
 
 
 // ============================================================
-//  Korean TTS — SpeechSynthesis wrapper
+//  Korean TTS v3 — Robust SpeechSynthesis + Server MP3 Fallback
+//  FIXED: Mobile playback (iOS Safari), voice selection, feedback
 // ============================================================
 const KoreanTTS = {
+  _voices: [],
+  _ready: false,
+  _currentAudio: null,       // Active <audio> element (recreated each play)
+  _voiceType: 'female',      // 'female' | 'male'
+
+  /** Initialise — preload voices and set up fallback infrastructure. */
+  init() {
+    this._loadVoices();
+    if ('speechSynthesis' in window) {
+      speechSynthesis.onvoiceschanged = () => this._loadVoices();
+    }
+    // Load voice preference from localStorage
+    const saved = localStorage.getItem('ka_tts_voice');
+    if (saved === 'male' || saved === 'female') this._voiceType = saved;
+    this._ready = true;
+    console.log('KoreanTTS v3 ready — voices:', this._voices.length, '| voice:', this._voiceType);
+  },
+
+  _loadVoices() {
+    if ('speechSynthesis' in window) {
+      this._voices = speechSynthesis.getVoices();
+    }
+  },
+
+  /** True if at least one Korean voice is available locally. */
+  get hasLocalKorean() {
+    return this._voices.some(v => v.lang.startsWith('ko'));
+  },
+
+  /** Set voice preference and persist. */
+  setVoiceType(type) {
+    this._voiceType = type;
+    localStorage.setItem('ka_tts_voice', type);
+  },
+
+  /** Get the server voice name based on preference. */
+  get _serverVoice() {
+    return this._voiceType === 'male' ? 'ko-KR-InJoonNeural' : 'ko-KR-SunHiNeural';
+  },
+
   /**
-   * Speak Korean text aloud.
-   * @param {string} text   — Korean text to speak
-   * @param {number} [rate=0.85] — speech rate (0.1–10)
+   * Speak Korean text. Local SpeechSynthesis first; server MP3 fallback.
+   * @param {string}  text      — Korean text
+   * @param {number}  [rate=0.85]
+   * @param {boolean} [forceServer=false]
    */
-  speak(text, rate = 0.85) {
-    if (!('speechSynthesis' in window)) return;
+  speak(text, rate = 0.85, forceServer = false) {
+    if (!text) return;
+    if (!this._ready) this.init();
+
+    // Stop any previous playback
+    this.stop();
+
+    // Try local SpeechSynthesis first if available
+    if (!forceServer && this.hasLocalKorean) {
+      this._speakLocal(text, rate);
+      return;
+    }
+
+    // No local Korean voice — go directly to server fallback.
+    // (Must stay within the user-gesture call chain for mobile autoplay.)
+    this._speakServer(text);
+  },
+
+  /** Browser-native SpeechSynthesis with Korean voice. */
+  _speakLocal(text, rate = 0.85) {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'ko-KR';
     utter.rate = rate;
     utter.pitch = 1.0;
 
-    // Prefer a native Korean voice if available
-    const voices = speechSynthesis.getVoices();
-    const koVoice = voices.find(v => v.lang.startsWith('ko'));
+    const koVoice = this._voices.find(v => v.lang.startsWith('ko'));
     if (koVoice) utter.voice = koVoice;
 
     speechSynthesis.speak(utter);
   },
 
   /**
-   * Speak a vocabulary word: Korean first, then romanization after a delay.
+   * Fetch MP3 from backend and play via a fresh Audio element.
+   * KEY FIX for mobile: creates a new Audio(url) each time,
+   * calls .load() then .play() for iOS Safari compatibility.
    */
+  _speakServer(text) {
+    // Kill any previous audio
+    if (this._currentAudio) {
+      this._currentAudio.pause();
+      this._currentAudio.src = '';
+      this._currentAudio.load();
+      this._currentAudio = null;
+    }
+
+    const voice = this._serverVoice;
+    const url = API_BASE + '/tts?text=' + encodeURIComponent(text) + '&voice=' + encodeURIComponent(voice);
+
+    // Create a fresh Audio element — mobile browsers play Audio(url)
+    // more reliably than reusing a hidden <audio> element.
+    const audio = new Audio();
+    audio.preload = 'auto';
+    audio.src = url;
+    this._currentAudio = audio;
+
+    // iOS Safari requires .load() before .play() when changing src
+    audio.load();
+
+    // Play with error feedback
+    audio.play().then(() => {
+      console.log('KoreanTTS: server playback started');
+    }).catch(err => {
+      console.error('KoreanTTS: server playback blocked —', err.name, err.message);
+      // On mobile, autoplay may be blocked if not in direct user gesture.
+      // Fallback: try play() again after a short delay (some browsers need it)
+      setTimeout(() => {
+        audio.play().catch(e2 => {
+          console.error('KoreanTTS: retry also failed —', e2.message);
+          if (typeof toast !== 'undefined') toast('⚠️ 播放失败，请重试');
+        });
+      }, 100);
+    });
+
+    // Clean up after playback ends
+    audio.onended = () => {
+      if (this._currentAudio === audio) {
+        this._currentAudio = null;
+      }
+    };
+  },
+
+  /** Speak a vocabulary word: Korean then romanization after delay. */
   speakWord(korean, romanization = '') {
     this.speak(korean, 0.7);
-    if (romanization) {
+    if (romanization && this.hasLocalKorean) {
       setTimeout(() => {
         const utter = new SpeechSynthesisUtterance(romanization);
-        utter.lang = 'ko-KR';
-        utter.rate = 0.6;
+        utter.lang = 'ko-KR'; utter.rate = 0.6;
         speechSynthesis.speak(utter);
       }, 1500);
     }
   },
 
-  /** Speak very slowly — useful for learner breakdown. */
+  /** Speak slowly for learner breakdown. */
   speakSlow(text) { this.speak(text, 0.55); },
 
-  /** Stop any ongoing speech. */
+  /** Stop all playback (local SpeechSynthesis + server audio). */
   stop() {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    if (this._currentAudio) {
+      this._currentAudio.pause();
+      this._currentAudio.src = '';
+      this._currentAudio.load();
+      this._currentAudio = null;
     }
+  },
+
+  /** True if audio is currently playing (server fallback). */
+  get isPlaying() {
+    return this._currentAudio && !this._currentAudio.paused;
   }
 };
 
-// Preload available voices
-if ('speechSynthesis' in window) {
-  speechSynthesis.getVoices();
-  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-}
+// Initialise on script load
+KoreanTTS.init();
 
 
 // ============================================================
@@ -306,9 +417,24 @@ const VoiceRecorder = {
 
   /** Stop recording and return a Promise that resolves with the audio Blob. */
   stop() {
-    if (this._state !== 'recording' || !this._mediaRecorder) return;
-    this._mediaRecorder.stop();
-    this._state = 'idle';
+    return new Promise((resolve, reject) => {
+      if (this._state !== 'recording' || !this._mediaRecorder) {
+        reject(new Error('Not recording'));
+        return;
+      }
+      // Override onstop to resolve with the blob
+      const prevOnStop = this._onStop;
+      const mime = this._mediaRecorder.mimeType || 'audio/webm';
+      this._mediaRecorder.onstop = () => {
+        this._state = 'idle';
+        this._cleanup();
+        this._stopVisualisation();
+        const blob = new Blob(this._chunks, { type: mime });
+        if (prevOnStop) prevOnStop(blob);
+        resolve(blob);
+      };
+      this._mediaRecorder.stop();
+    });
   },
 
   /**

@@ -4,7 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>文文的韩语老师</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/style.css?v=12">
+<script>
+// SW disabled — always load fresh from server
+console.log('Korean Academy v2 — no service worker');
+</script>
 </head>
 <body>
 <div id="app">
@@ -16,7 +21,9 @@
 <header class="top-bar" id="topBar">
   <span class="back-btn" id="backBtn" style="visibility:hidden">&#8249;</span>
   <h1 id="topTitle">文文的韩语老师</h1>
-  <span class="top-action" id="topAction" style="visibility:hidden"></span>
+  <span class="top-action" id="topAction" style="visibility:visible;position:relative" onclick="switchTab('profile')">
+    📝<span class="top-error-badge" id="topErrorBadge" style="display:none">0</span>
+  </span>
 </header>
 
 <!-- Pages Container -->
@@ -107,6 +114,7 @@
 <!-- ==================== LESSON ==================== -->
 <section class="page" id="page-lesson">
   <div id="lessonContent"></div>
+  <audio id="lessonAudioEl" preload="none" style="display:none"></audio>
 </section>
 
 <!-- ==================== QUIZ ==================== -->
@@ -117,6 +125,22 @@
 <!-- ==================== QUIZ RESULT ==================== -->
 <section class="page" id="page-quiz-result">
   <div id="quizResultContent"></div>
+</section>
+
+<!-- ==================== SONGS LIST ==================== -->
+<section class="page" id="page-songs">
+  <div class="filter-pills">
+    <span class="filter-pill active" onclick="filterSongs(0, this)">全部</span>
+    <span class="filter-pill" onclick="filterSongs(1, this)">入门</span>
+    <span class="filter-pill" onclick="filterSongs(2, this)">初级</span>
+    <span class="filter-pill" onclick="filterSongs(3, this)">中级</span>
+  </div>
+  <div id="songsList"></div>
+</section>
+
+<!-- ==================== SONG DETAIL ==================== -->
+<section class="page" id="page-song-detail">
+  <div id="songDetailContent"></div>
 </section>
 
 <!-- ==================== VOICE PRACTICE ==================== -->
@@ -162,6 +186,10 @@
   </div>
 
   <div class="flashcard-container" id="flashcardContainer">
+    <div class="fc-header">
+      <span class="fc-progress" id="fcProgress">-</span>
+      <button class="fc-skip-btn" onclick="skipCard()">跳过 ⏭</button>
+    </div>
     <div class="flashcard" id="flashcard" onclick="flipCard()">
       <div class="fc-face fc-front">
         <div class="fc-korean" id="fcKorean"></div>
@@ -183,6 +211,8 @@
     <button class="fc-btn good" onclick="rateCard(4)">Good</button>
     <button class="fc-btn easy" onclick="rateCard(5)">Easy</button>
   </div>
+
+  <div class="fc-history" id="fcHistory" style="display:none"></div>
 
   <div class="empty-state" id="flashcardEmpty" style="display:none">
     <div class="empty-icon">&#9830;</div>
@@ -232,6 +262,68 @@
   <div class="achievement-grid" id="achievementGrid"></div>
 </section>
 
+<!-- ==================== LEADERBOARD ==================== -->
+<section class="page" id="page-leaderboard">
+  <div class="leaderboard-header">
+    <div class="lb-title">🏆 排行榜</div>
+    <div class="lb-subtitle">Top 10 Learners</div>
+  </div>
+  <div id="leaderboardList"></div>
+  <div class="card mt-16" id="lbMyRank" style="display:none">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="font-size:0.75rem;color:var(--text-tertiary)">我的排名</div>
+      <div style="flex:1;text-align:right;font-weight:700;color:var(--gold)" id="lbMyRankText">-</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== AI CHAT ==================== -->
+<section class="page" id="page-chat">
+  <div class="scenario-pills" id="scenarioPills">
+    <span class="scenario-pill active" onclick="switchToScenario('restaurant')">🍽️ 餐厅</span>
+    <span class="scenario-pill" onclick="switchToScenario('meeting')">🤝 见面</span>
+    <span class="scenario-pill" onclick="switchToScenario('travel')">🗺️ 旅行</span>
+    <span class="scenario-pill" onclick="switchToScenario('shopping')">🛍️ 购物</span>
+    <span class="scenario-pill" onclick="switchToScenario('daily')">💬 日常</span>
+    <span class="scenario-pill" onclick="switchToScenario('cafe')">☕ 咖啡厅</span>
+  </div>
+
+  <div class="chat-area" id="chatArea">
+    <div class="chat-welcome" id="chatWelcome">
+      <div class="cw-icon">💬</div>
+      <div class="cw-title">AI 韩语对话练习</div>
+      <div class="cw-subtitle">选择一个场景，开始练习韩语对话吧！<br>AI 会作为对话伙伴陪你练习</div>
+    </div>
+  </div>
+
+  <div class="quick-phrases" id="quickPhrases"></div>
+
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" placeholder="输入韩语..." onkeydown="if(event.key==='Enter')sendChatMessage()">
+    <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+  </div>
+</section>
+
+<!-- ==================== PODCAST ==================== -->
+<section class="page" id="page-podcast">
+  <div id="podcastList"></div>
+  <div id="podcastScript" class="podcast-script" style="display:none"></div>
+  <div class="podcast-player-bar" id="podcastPlayer" style="display:none">
+    <div class="pp-title" id="ppTitle">选择播客</div>
+    <div class="pp-progress"><div class="pp-progress-fill" id="ppProgressFill" style="width:0%"></div></div>
+    <div class="pp-controls">
+      <button class="pp-btn" onclick="podcastSkip(-10)">⏪</button>
+      <button class="pp-btn pp-play" id="ppPlayBtn" onclick="podcastTogglePlay()">▶</button>
+      <button class="pp-btn" onclick="podcastSkip(10)">⏩</button>
+    </div>
+    <div class="pp-speed" id="ppSpeed">
+      <button class="pp-speed-btn" onclick="podcastSetSpeed(0.75)">0.75x</button>
+      <button class="pp-speed-btn active" onclick="podcastSetSpeed(1)">1x</button>
+      <button class="pp-speed-btn" onclick="podcastSetSpeed(1.25)">1.25x</button>
+    </div>
+  </div>
+</section>
+
 <!-- ==================== PROFILE ==================== -->
 <section class="page" id="page-profile">
   <div class="profile-header" style="text-align:center;padding:24px 0 16px">
@@ -271,23 +363,68 @@
         <button class="btn btn-sm btn-outline" onclick="setTtsRate(1.1)">快</button>
       </div>
     </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border)">
+      <span style="color:var(--text-secondary);font-size:0.875rem">🔊 TTS 语音</span>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-sm btn-outline" id="btnVoiceFemale" onclick="switchTtsVoice('female')" style="background:rgba(226,182,79,0.15);border-color:var(--border-gold);color:var(--gold)">👩 女声</button>
+        <button class="btn btn-sm btn-outline" id="btnVoiceMale" onclick="switchTtsVoice('male')">👨 男声</button>
+      </div>
+    </div>
   </div>
 
-  <button class="btn btn-primary mt-12" onclick="doMockLogin()">重新登录</button>
+  <!-- WeChat Login -->
+  <div class="card mt-12" id="wxLoginCard">
+    <div class="card-title">🔐 账号绑定</div>
+    <div id="wxLoginArea">
+      <button class="wx-login-btn" onclick="wxLogin()">💚 微信登录</button>
+      <div class="text-xs" style="color:var(--text-tertiary);margin-top:8px;text-align:center">登录后可同步学习进度</div>
+    </div>
+    <div id="wxLoggedInArea" style="display:none">
+      <div class="wx-logged-in">
+        <div class="wx-avatar" id="wxAvatarLetter">K</div>
+        <div class="wx-info" id="wxNickname">韩语学习者</div>
+      </div>
+      <button class="btn btn-outline mt-8" style="width:100%" onclick="wxLogout()">退出登录</button>
+    </div>
+  </div>
+
+  <!-- Error Notebook -->
+  <div class="card mt-12" id="errorNotebook">
+    <div class="error-header">
+      <div class="card-title" style="margin-bottom:0">📝 错题本</div>
+      <span class="error-count" id="errorCount">0题</span>
+    </div>
+    <div id="errorList"></div>
+    <div id="errorEmpty" class="error-empty">
+      <div class="ee-icon">✓</div>
+      <div style="font-size:0.8125rem">暂无错题，继续保持!</div>
+    </div>
+  </div>
+
+  <button class="btn btn-outline mt-12" style="width:100%" onclick="switchTab('leaderboard')">🏆 排行榜</button>
 </section>
 
 </div><!-- /pages-container -->
 
 <!-- Tab Bar -->
-<nav class="tab-bar">
+<nav class="tab-bar seven-items">
   <div class="tab-item active" data-tab="home" onclick="switchTab('home')">
     <span class="tab-icon">&#9679;</span>学习
   </div>
   <div class="tab-item" data-tab="courses" onclick="switchTab('courses')">
     <span class="tab-icon">&#9776;</span>课程
   </div>
+  <div class="tab-item" data-tab="chat" onclick="switchTab('chat')">
+    <span class="tab-icon">💬</span>对话
+  </div>
   <div class="tab-item" data-tab="voice" onclick="switchTab('voice')">
     <span class="tab-icon">&#9679;</span>发音
+  </div>
+  <div class="tab-item" data-tab="songs" onclick="switchTab('songs')">
+    <span class="tab-icon">&#9835;</span>歌曲
+  </div>
+  <div class="tab-item" data-tab="podcast" onclick="switchTab('podcast')">
+    <span class="tab-icon">🎧</span>播客
   </div>
   <div class="tab-item" data-tab="profile" onclick="switchTab('profile')">
     <span class="tab-icon">&#9670;</span>我的
@@ -297,10 +434,21 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- WeChat Login Modal -->
+<div class="wx-modal-overlay" id="wxModal" style="display:none">
+  <div class="wx-modal">
+    <div class="wx-modal-title">微信登录</div>
+    <div class="wx-modal-subtitle">扫码或授权登录，同步学习进度</div>
+    <button class="wx-login-btn" onclick="wxDoLogin()">💚 一键授权登录</button>
+    <button class="wx-login-btn mock mt-8" onclick="wxMockLogin()" style="margin-top:8px">🔧 模拟登录 (开发测试)</button>
+    <div class="wx-modal-close" onclick="wxCloseModal()">取消</div>
+  </div>
+</div>
+
 </div><!-- /#app -->
 
-<script src="js/api.js?v=2"></script>
-<script src="js/songs.js?v=2"></script>
+<script src="js/api.js?v=11"></script>
+<script src="js/songs.js?v=11"></script>
 <script>
 // ═══════════════════════════════════════════════════
 //  KOREAN ACADEMY v2 — App Logic
@@ -406,10 +554,14 @@ function switchTab(tab) {
   if (tab === 'home') loadHomePage();
   if (tab === 'courses') loadCourses(0);
   if (tab === 'voice') loadVoicePage();
+  if (tab === 'songs') loadSongs(0);
   if (tab === 'flashcard') loadFlashcards();
   if (tab === 'daily') loadDaily();
   if (tab === 'achievements') loadAchievements();
   if (tab === 'profile') loadProfile();
+  if (tab === 'leaderboard') loadLeaderboard();
+  if (tab === 'chat') loadChatPage();
+  if (tab === 'podcast') loadPodcasts();
 }
 
 function navigateTo(page, title, params = {}) {
@@ -436,10 +588,80 @@ function goBack() {
 }
 
 function showPage(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
   const el = document.getElementById('page-' + page);
-  if (el) { el.classList.add('active'); el.scrollTop = 0; }
+  if (el) { el.classList.add('active'); el.style.display = ''; el.scrollTop = 0; }
   window.scrollTo(0, 0);
+}
+
+// ── KoreanTTS — 课程音频播放（标准流水线：DeepSeek口播稿→edge_tts→ffmpeg）──
+var KoreanTTS = {
+  _audio: null,
+  _voiceType: (localStorage.getItem('ka_tts_voice') || 'female'),
+  _speed: parseFloat(localStorage.getItem('ka_tts_speed') || '0.85'),
+  // 播放文本（通过后端TTS实时合成）
+  speak: function(text, speed) {
+    if (!text) return;
+    this.stop();
+    var spd = speed || this._speed;
+    var audio = new Audio(API_BASE + '/tts?text=' + encodeURIComponent(text) + '&lang=ko&speed=' + spd + '&voice=' + this._voiceType);
+    this._audio = audio;
+    audio.play().catch(function() {});
+  },
+  speakWord: function(korean, rom) { this.speak(korean, 0.7); },
+  speakSlow: function(text) { this.speak(text, 0.5); },
+  stop: function() {
+    if (this._audio) { try { this._audio.pause(); this._audio = null; } catch(e) {} }
+  },
+  setVoiceType: function(type) {
+    this._voiceType = type || 'female';
+    localStorage.setItem('ka_tts_voice', this._voiceType);
+  },
+  setSpeed: function(speed) {
+    this._speed = speed;
+    localStorage.setItem('ka_tts_speed', speed);
+  }
+};
+
+// ── 课程音频播放器（标准流水线规格：24000Hz mono 48kbps）──
+var lessonAudio = null;
+function playLessonAudio(lessonId) {
+  if (!lessonId) return;
+  var btn = document.getElementById('btnLessonAudio');
+  var audio = document.getElementById('lessonAudioEl');
+  if (!audio || !btn) return;
+  if (lessonAudio && !audio.paused) {
+    audio.pause();
+    btn.innerHTML = '▶ 播放课程音频';
+    return;
+  }
+  // 优先用预生成音频（流水线标准），fallback到TTS实时合成
+  audio.src = API_BASE + '/tts/lesson/' + lessonId;
+  audio.load();
+  audio.play().then(function() {
+    btn.innerHTML = '⏸ 暂停音频';
+    lessonAudio = audio;
+  }).catch(function() {
+    btn.innerHTML = '⚠ 音频暂不可用';
+  });
+  audio.onended = function() {
+    btn.innerHTML = '▶ 播放课程音频';
+    lessonAudio = null;
+  };
+  audio.onerror = function() {
+    btn.innerHTML = '⚠ 加载失败';
+    lessonAudio = null;
+  };
+}
+function stopLessonAudio() {
+  var audio = document.getElementById('lessonAudioEl');
+  if (audio) { audio.pause(); audio.currentTime = 0; }
+  lessonAudio = null;
+  var btn = document.getElementById('btnLessonAudio');
+  if (btn) btn.innerHTML = '▶ 播放课程音频';
 }
 
 function toast(msg) {
@@ -583,6 +805,10 @@ async function openCourse(courseId) {
     const data = await api.getCourseDetail(courseId);
     if (!data) { container.innerHTML = '<div class="empty-state"><div class="empty-text">课程不存在</div></div>'; return; }
     currentCourse = data;
+    // Update courseData with detailed course info for lesson navigation
+    const courseIdx = courseData.findIndex(c => c.id === courseId);
+    if (courseIdx >= 0) courseData[courseIdx] = data;
+    else courseData.push(data);
     container.innerHTML = `
       <div class="card card-gold">
         <div class="card-title">${data.title}</div>
@@ -635,14 +861,14 @@ async function openLesson(lessonId, title) {
         <div class="section-header"><span class="section-title">语法要点</span></div>
         ${grammar.map(g => `
           <div class="grammar-card">
-            <div class="gc-pattern">${g.pattern}</div>
+            <div class="gc-pattern" onclick="KoreanTTS.speak('${escAttr(g.pattern)}')">${g.pattern}</div>
             <div class="gc-title">${g.title}</div>
             <div class="gc-explanation">${g.explanation}</div>
             ${g.examples_ko ? `<div class="gc-examples">${(() => {
               try {
                 const koArr = JSON.parse(g.examples_ko);
                 const zhArr = JSON.parse(g.examples_zh || '[]');
-                return koArr.map((k,i) => `<div class="gc-example-item"><span class="ge-ko">${k}</span><span class="ge-zh">${zhArr[i] || ''}</span></div>`).join('');
+                return koArr.map((k,i) => `<div class="gc-example-item" onclick="KoreanTTS.speak('${escAttr(k)}')"><span class="ge-ko">${k}</span><span class="ge-zh">${zhArr[i] || ''}</span></div>`).join('');
               } catch(e) { return ''; }
             })()}</div>` : ''}
           </div>`).join('')}
@@ -654,11 +880,12 @@ async function openLesson(lessonId, title) {
       vocabHtml = `
         <div class="section-header"><span class="section-title">本课词汇</span></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${vocab.map(v => `
-          <div class="card" style="padding:12px;text-align:center;cursor:pointer" onclick="KoreanTTS.speakWord('${escAttr(v.korean)}')">
+          <div class="card vocab-card" style="padding:12px;cursor:pointer" onclick="KoreanTTS.speakWord('${escAttr(v.korean)}','${escAttr(v.romanization || '')}')">
             <div style="font-family:var(--font-korean);font-size:1.0625rem;font-weight:600;color:var(--gold)">${v.korean}</div>
             <div style="font-size:0.6875rem;color:var(--text-tertiary);margin:3px 0">${v.romanization || ''}</div>
-            <div style="font-size:0.8125rem;color:var(--text-secondary)">${v.chinese}</div>
-            ${v.part_of_speech ? `<div style="font-size:0.625rem;color:var(--gold);opacity:0.6;margin-top:2px">${v.part_of_speech}</div>` : ''}
+            <div style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:6px">${v.chinese}</div>
+            ${v.part_of_speech ? `<div style="font-size:0.625rem;color:var(--gold);opacity:0.5;margin-bottom:6px;display:inline-block;padding:1px 8px;border:1px solid var(--border-gold);border-radius:10px">${v.part_of_speech}</div>` : ''}
+            ${v.example_ko ? `<div style="font-size:0.6875rem;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis" onclick="event.stopPropagation();KoreanTTS.speak('${escAttr(v.example_ko)}')">🔊 ${v.example_ko}</div>` : ''}
           </div>`).join('')}</div>
       `;
     }
@@ -667,12 +894,22 @@ async function openLesson(lessonId, title) {
       <div class="card">
         <div class="card-title">${lesson.title}</div>
         <div class="text-xs mb-8" style="color:var(--text-tertiary)">${Math.floor(lesson.duration/60)}分钟</div>
-        <div class="lesson-content">${(lesson.content || '').replace(/\n/g, '<br>').replace(/## (.+)/g, '<h2>$1</h2>').replace(/# (.+)/g, '<h1>$1</h1>').replace(/- (.+)/g, '<li>$1</li>')}</div>
+        <div class="lesson-audio-bar" style="background:var(--bg-card);border-radius:12px;padding:12px 16px;margin:12px 0;display:flex;align-items:center;gap:10px;border:1px solid var(--border)">
+          <span style="font-size:0.8rem;color:var(--text-secondary)">🎧 课程音频</span>
+          <span style="font-size:0.65rem;color:var(--text-tertiary);flex:1">标准流水线：DeepSeek口播稿→edge_tts YunyangNeural→ffmpeg 24kHz mono 48kbps</span>
+          <button class="btn btn-sm btn-primary" id="btnLessonAudio" onclick="playLessonAudio(${lessonId})" style="flex-shrink:0">▶ 播放课程音频</button>
+        </div>
+        <div class="lesson-content">${renderMarkdown(lesson.content || '', lessonId)}${makePronDiag(lessonId, lesson.title)}</div>
+      </div>
+      <div class="lesson-actions">
+        <button class="btn btn-sm btn-outline" style="width:100%" onclick="markLessonComplete(${lessonId})">✅ 标记完成</button>
       </div>
       ${grammarHtml}
+      ${getCultureNote(lessonId)}
       ${vocabHtml}
       <button class="btn btn-primary mt-8" onclick="startQuiz(${lessonId})">开始练习</button>
       <button class="btn btn-outline mt-8" style="width:100%" onclick="openVoiceForLesson(${lessonId})">发音练习</button>
+      ${getLessonNav(lessonId)}
     `;
   } catch(e) { container.innerHTML = '<div class="empty-state"><div class="empty-text">加载失败</div></div>'; }
 }
@@ -728,38 +965,62 @@ function renderQuizQuestion() {
   `;
 }
 
-function selectOption(idx, answer) {
+async function selectOption(idx, answer) {
   if (quizState.locked) return;
   quizState.locked = true;
   const q = quizState.questions[quizState.currentIndex];
-  const isCorrect = answer === q.answer;
-  
+
+  // Submit to API and get the real result
+  let result = null;
+  try { result = await api.submitAnswer(q.id, answer); } catch(e) {}
+  const isCorrect = result ? result.is_correct : false;
+  const correctAnswer = result ? result.correct_answer : '';
+
   const opts = document.querySelectorAll('.quiz-option');
   opts.forEach((o, i) => {
     if (i === idx) o.classList.add(isCorrect ? 'correct' : 'wrong');
     try {
       const optText = JSON.parse(q.options || '[]')[i];
-      if (optText === q.answer) o.classList.add('correct');
+      if (optText === correctAnswer) o.classList.add('correct');
+      if (!isCorrect && i === idx) o.classList.add('wrong');
     } catch(e) {}
   });
-  
-  quizState.answers.push({ exercise_id: q.id, answer, is_correct: isCorrect });
-  api.submitAnswer(q.id, answer).catch(() => {});
-  
+
+  quizState.answers.push({ exercise_id: q.id, answer, is_correct: isCorrect, correct_answer: correctAnswer });
+  // Store the correct answer for result display
+  if (result) q._correct = result.correct_answer;
+
+  // Save to error notebook if wrong
+  if (!isCorrect) {
+    saveError({ question: q.question, userAnswer: answer, correctAnswer: correctAnswer, lessonId: quizState.lessonId, timestamp: Date.now() });
+  }
+
   setTimeout(() => { quizState.currentIndex++; renderQuizQuestion(); }, 1200);
 }
 
-function submitFill() {
+async function submitFill() {
   const input = document.getElementById('fillInput');
   if (!input) return;
   const answer = input.value.trim();
   if (!answer) { toast('请输入答案'); return; }
   const q = quizState.questions[quizState.currentIndex];
-  const isCorrect = answer === q.answer;
-  quizState.answers.push({ exercise_id: q.id, answer, is_correct: isCorrect });
-  api.submitAnswer(q.id, answer).catch(() => {});
-  toast(isCorrect ? '正确!' : '正确答案: ' + q.answer);
-  setTimeout(() => { quizState.currentIndex++; renderQuizQuestion(); }, 1200);
+
+  // Submit to API and get the real result
+  let result = null;
+  try { result = await api.submitAnswer(q.id, answer); } catch(e) {}
+  const isCorrect = result ? result.is_correct : false;
+  const correctAnswer = result ? result.correct_answer : '';
+
+  quizState.answers.push({ exercise_id: q.id, answer, is_correct: isCorrect, correct_answer: correctAnswer });
+  if (result) q._correct = result.correct_answer;
+
+  // Save to error notebook if wrong
+  if (!isCorrect) {
+    saveError({ question: q.question, userAnswer: answer, correctAnswer: correctAnswer, lessonId: quizState.lessonId, timestamp: Date.now() });
+  }
+
+  toast(isCorrect ? '✅ 正确!' : '❌ 正确答案: ' + correctAnswer);
+  setTimeout(() => { quizState.currentIndex++; renderQuizQuestion(); }, 1400);
 }
 
 function showQuizResult() {
@@ -788,15 +1049,17 @@ function showQuizResult() {
     <div class="result-detail">
       ${answers.map((a, i) => {
         const q = quizState.questions[i];
+        const correctAns = a.correct_answer || q._correct || '';
         return `<div class="rd-item ${a.is_correct ? 'correct' : ''}">
           <div class="rd-question">${i+1}. ${q.question}</div>
           <div class="rd-answer">你的答案: ${a.answer}</div>
-          ${!a.is_correct ? `<div class="rd-correct">正确答案: ${q.answer}</div>` : ''}
+          ${!a.is_correct ? `<div class="rd-correct">正确答案: ${correctAns}</div>` : ''}
         </div>`;
       }).join('')}
     </div>
     <button class="btn btn-primary mt-8" onclick="startQuiz(${quizState.lessonId})">再练一次</button>
     <button class="btn btn-outline mt-8" style="width:100%" onclick="goBack()">返回课时</button>
+    ${getNextLessonButton(quizState.lessonId)}
   `;
 }
 
@@ -850,10 +1113,16 @@ async function toggleRecording() {
   const canvas = document.getElementById('voiceCanvas');
   
   if (VoiceRecorder.isRecording) {
-    voiceBlob = await VoiceRecorder.stop();
-    btn.classList.remove('recording');
-    status.textContent = '录音完成，点击提交评分';
-    document.getElementById('btnSubmitVoice').disabled = false;
+    try {
+      voiceBlob = await VoiceRecorder.stop();
+      btn.classList.remove('recording');
+      status.textContent = '录音完成，点击提交评分';
+      document.getElementById('btnSubmitVoice').disabled = false;
+    } catch(e) {
+      btn.classList.remove('recording');
+      status.textContent = '录音失败，请重试';
+      voiceBlob = null;
+    }
   } else {
     if (!voiceTargetText) {
       toast('请先选择练习词汇');
@@ -889,6 +1158,8 @@ async function submitVoice() {
           </div>
         </div>
       `;
+    } else {
+      toast('评分失败，请登录后重试');
     }
   } catch(e) { toast('评分失败，请重试'); }
   document.getElementById('btnSubmitVoice').disabled = false;
@@ -919,8 +1190,19 @@ async function loadFlashcards() {
     if (!cards || !cards.length) {
       container.style.display = 'none';
       empty.style.display = 'block';
+      document.getElementById('fcProgress').textContent = '-';
+      document.getElementById('fcHistory').style.display = 'none';
       return;
     }
+    
+    // Card progress indicator
+    const totalDue = stats ? stats.due : cards.length;
+    const currentIdx = cards.length > 0 ? totalDue - cards.length + 1 : 1;
+    document.getElementById('fcProgress').textContent = currentIdx + '/' + totalDue;
+
+    // Store card list for skip/progress
+    fcCardList = cards;
+    fcCurrentIdx = 0;
     
     currentFlashcard = cards[0];
     updateFlashcardUI(currentFlashcard);
@@ -936,6 +1218,26 @@ function updateFlashcardUI(card) {
   document.getElementById('fcPos').textContent = card.part_of_speech || '';
   document.getElementById('fcChinese').textContent = card.chinese;
   document.getElementById('fcExample').innerHTML = (card.example_ko || '') + '<br>' + (card.example_zh || '');
+
+  // Show review history if available
+  const histEl = document.getElementById('fcHistory');
+  if (card.review_count !== undefined) {
+    const count = card.review_count || 0;
+    const lastReview = card.last_reviewed;
+    let historyText = '复习' + count + '次';
+    if (lastReview) {
+      const daysAgo = Math.floor((Date.now() - new Date(lastReview).getTime()) / 86400000);
+      if (daysAgo > 0) historyText += ', 上次' + daysAgo + '天前';
+      else if (daysAgo === 0) historyText += ', 今天复习过';
+    }
+    if (card.ease_factor) {
+      historyText += ' · EF ' + parseFloat(card.ease_factor).toFixed(1);
+    }
+    histEl.textContent = historyText;
+    histEl.style.display = 'block';
+  } else {
+    histEl.style.display = 'none';
+  }
 }
 
 function flipCard() {
@@ -948,12 +1250,41 @@ function playFcAudio() {
   if (currentFlashcard) KoreanTTS.speakWord(currentFlashcard.korean);
 }
 
+// Flashcard local list for skip/progress
+let fcCardList = [];
+let fcCurrentIdx = 0;
+
 async function rateCard(quality) {
   if (!currentFlashcard) return;
   try {
     await api.reviewCard(currentFlashcard.vocab_id, quality);
-    loadFlashcards();
+    fcCurrentIdx++;
+    if (fcCurrentIdx < fcCardList.length) {
+      currentFlashcard = fcCardList[fcCurrentIdx];
+      document.getElementById('flashcard').classList.remove('flipped');
+      document.getElementById('flashcardActions').style.display = 'none';
+      document.getElementById('fcHistory').style.display = 'none';
+      updateFlashcardUI(currentFlashcard);
+      document.getElementById('fcProgress').textContent = (fcCurrentIdx + 1) + '/' + fcCardList.length;
+    } else {
+      loadFlashcards();
+    }
   } catch(e) { toast('操作失败'); }
+}
+
+function skipCard() {
+  if (!currentFlashcard) return;
+  fcCurrentIdx++;
+  if (fcCurrentIdx < fcCardList.length) {
+    currentFlashcard = fcCardList[fcCurrentIdx];
+    document.getElementById('flashcard').classList.remove('flipped');
+    document.getElementById('flashcardActions').style.display = 'none';
+    document.getElementById('fcHistory').style.display = 'none';
+    updateFlashcardUI(currentFlashcard);
+    document.getElementById('fcProgress').textContent = (fcCurrentIdx + 1) + '/' + fcCardList.length;
+  } else {
+    loadFlashcards();
+  }
 }
 
 // ── DAILY ──
@@ -1048,6 +1379,12 @@ async function loadProfile() {
     } catch(e) {}
     
   } catch(e) {}
+  
+  // Load error notebook
+  loadErrorNotebook();
+  
+  // Update WeChat login UI
+  updateWxLoginUI();
 }
 
 // ── SETTINGS ──
@@ -1056,14 +1393,1306 @@ function setTtsRate(rate) {
   toast('语速已设置');
 }
 
+function switchTtsVoice(type) {
+  KoreanTTS.setVoiceType(type);
+  document.getElementById('btnVoiceFemale').style.background = type === 'female' ? 'rgba(226,182,79,0.15)' : '';
+  document.getElementById('btnVoiceFemale').style.borderColor = type === 'female' ? 'var(--border-gold)' : '';
+  document.getElementById('btnVoiceFemale').style.color = type === 'female' ? 'var(--gold)' : '';
+  document.getElementById('btnVoiceMale').style.background = type === 'male' ? 'rgba(226,182,79,0.15)' : '';
+  document.getElementById('btnVoiceMale').style.borderColor = type === 'male' ? 'var(--border-gold)' : '';
+  document.getElementById('btnVoiceMale').style.color = type === 'male' ? 'var(--gold)' : '';
+  toast(type === 'female' ? '已切换为女声 👩' : '已切换为男声 👨');
+  // Play a test sound
+  setTimeout(() => KoreanTTS.speak(type === 'female' ? '안녕하세요' : '안녕하세요'), 300);
+}
+
 // ── HELPERS ──
 function escAttr(s) {
   if (!s) return '';
-  return s.replace(/'/g, "\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
+  return s.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
 }
 
-console.log('Korean Academy v2 Ready');
-console.log('Pages: home | courses | course-detail | lesson | quiz | quiz-result | voice | flashcard | daily | achievements | profile');
+// ══════════════════════════════════════════
+//  MARKDOWN RENDERER — tables, bold, lists, SVGs
+// ══════════════════════════════════════════
+function renderMarkdown(md, lessonId) {
+  if (!md) return '';
+  const lines = md.split('\n');
+  let html = '', inTable = false, inList = false, tableHtml = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const line = raw.trim();
+    if (!line) { closeBlocks(); html += '\n'; continue; }
+
+    // Code blocks (grid/summary style tables with inline diagrams)
+    if (line.startsWith('```')) { closeBlocks(); i++; while(i<lines.length && !lines[i].trim().startsWith('```')) i++; continue; }
+
+    // Horizontal rule
+    if (/^[-*_]{3,}$/.test(line)) { closeBlocks(); html += '<hr>'; continue; }
+
+    // Tables
+    if (line.startsWith('|') && line.endsWith('|')) {
+      if (!inTable) { inTable = true; tableHtml = '<table class="md-table">'; continue; }
+      if (/^\|[-: |]+\|$/.test(line)) continue;
+      tableHtml += '<tr>' + line.split('|').filter((_,j,a) => j>0 && j<a.length-1)
+        .map(cell => {
+          const trimmed = cell.trim();
+          const formatted = inlineFormat(trimmed);
+          // Make Korean text cells clickable for TTS
+          if (/[\uAC00-\uD7AF]/.test(trimmed)) {
+            return `<td><span class="tts-cell" onclick="event.stopPropagation();KoreanTTS.speak('${escAttr(trimmed.replace(/<[^>]*>/g,''))}')">${formatted}</span></td>`;
+          }
+          return `<td>${formatted}</td>`;
+        }).join('') + '</tr>';
+      continue;
+    }
+    if (inTable) { html += tableHtml + '</table>'; tableHtml = ''; inTable = false; }
+
+    // Lists
+    if (/^[-*]\s/.test(line)) {
+      if (!inList) { inList = true; html += '<ul>'; }
+      html += `<li>${inlineFormat(line.replace(/^[-*]\s+/, ''))}</li>`;
+      continue;
+    }
+    if (inList) { html += '</ul>'; inList = false; }
+
+    // Headings
+    if (line.startsWith('### ')) { html += `<h3>${inlineFormat(line.slice(4))}</h3>`; continue; }
+    if (line.startsWith('## ')) { html += `<h2>${inlineFormat(line.slice(3))}</h2>`; continue; }
+    if (line.startsWith('# ')) { html += `<h1>${inlineFormat(line.slice(2))}</h1>`; continue; }
+
+    // Normal paragraph — group consecutive non-empty, non-special lines
+    html += `<p>${inlineFormat(line)}</p>`;
+  }
+
+  function closeBlocks() {
+    if (inTable) { html += tableHtml + '</table>'; tableHtml = ''; inTable = false; }
+    if (inList) { html += '</ul>'; inList = false; }
+  }
+  closeBlocks();
+  return html;
+}
+
+// ══════════════════════════════════════════
+//  PRONUNCIATION DIAGRAMS — SVG schematic
+// ══════════════════════════════════════════
+function makePronDiag(lessonId, title) {
+  const diagMap = {
+    // Lesson 1: Basic vowels — mouth position diagram
+    1: vowelMouthDiagram(),
+    // Lesson 2: Consonants ㄱㄴㄷㄹㅁ — articulation
+    2: consonantArticulation(['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ'],['软腭','齿龈','齿龈','上颚','双唇'],['舌根','舌尖','舌尖','舌尖','双唇']),
+    // Lesson 3: Consonants ㅂㅅㅇㅈㅎ
+    3: consonantArticulation(['ㅂ','ㅅ','ㅇ','ㅈ','ㅎ'],['双唇','齿龈','喉','硬腭','喉'],['双唇','舌中','无声','舌面','声门']),
+    // Lesson 4: Compound vowels + tense consonants
+    4: compoundVowelDiagram(),
+    // Lesson 5: Batchim rules
+    5: batchimDiagram(),
+    // Grammar lessons: sentence structure
+    7: grammarStruct('N-이에요/예요', '名词 + 이다', '저는 학생이에요', '我是学生', 'N', '이에요/예요'),
+    8: grammarStruct('있다/없다', 'N + 이/가 있다/없다', '돈이 있어요', '有钱 / 没有', 'N', '있다/없다'),
+    16: grammarStruct('V/A-아/어요', '词干 + 아/어요', '먹다 → 먹어요', '吃', 'V/A', '아/어요'),
+    17: grammarStruct('V/A-았/었어요', '词干 + 았/었어요', '가다 → 갔어요', '去了', 'V/A', '았/었어요'),
+    18: grammarStruct('V-(으)ㄹ 거예요', '词干 + (으)ㄹ 거예요', '할 거예요', '会做的', 'V', '(으)ㄹ 거예요'),
+    19: grammarStruct('은/는 vs 이/가', '主题 vs 主语', '나는 학생이에요', '主题/主语', '은/는', '이/가'),
+    20: grammarStruct('을/를 + 에/에서', '宾语 + 地点', '밥을 먹어요', '吃饭 + 在', '을/를', '에/에서'),
+    26: grammarStruct('形容词用法', 'A + (으)ㄴ N', '예쁜 꽃', '漂亮的花', 'A', '(으)ㄴ'),
+    28: grammarStruct('比较级', 'N보다 더 A', '이것보다 커요', '比这个更大', 'N보다', '더 A'),
+    31: grammarStruct('连接词尾', '-고, -지만, -아/어서', '먹고 자요', '吃然后睡', 'V-고', 'V-지만/아서'),
+    32: grammarStruct('间接引语', 'V-ㄴ/는다고 하다', '온다고 했어요', '说要来', 'V', '다고/라고'),
+    34: grammarStruct('条件句', 'V-(으)면', '비가 오면', '如果下雨', 'V', '(으)면'),
+  };
+  if (diagMap[lessonId]) {
+    return `<div class="pron-diagram">${diagMap[lessonId]}</div>`;
+  }
+  return '';
+}
+
+// ── SVG: Vowel mouth position ──
+function vowelMouthDiagram() {
+  const vowels = [
+    {letter:'ㅏ', pos:'大张口', rom:'a', cx:80,cy:85,r:20, desc:'嘴巴张大，自然开口'},
+    {letter:'ㅓ', pos:'微张口', rom:'eo', cx:180,cy:80,r:15, desc:'嘴微张，舌根稍缩'},
+    {letter:'ㅗ', pos:'圆唇前伸', rom:'o', cx:280,cy:85,r:14, desc:'嘴唇拢圆前伸'},
+    {letter:'ㅜ', pos:'圆唇紧合', rom:'u', cx:160,cy:160,r:12, desc:'嘴唇拢圆更紧'},
+    {letter:'ㅡ', pos:'横开口', rom:'eu', cx:260,cy:155,r:11, desc:'嘴角向两边拉开'},
+    {letter:'ㅣ', pos:'竖开口', rom:'i', cx:90,cy:155,r:10, desc:'嘴角微收，舌面抬高'},
+  ];
+  let items = vowels.map(v => 
+    `<div style="text-align:center;flex:1;min-width:90px">
+      <svg viewBox="0 0 100 100" width="80" height="80"><circle cx="50" cy="50" r="${v.r/60*35}" fill="none" stroke="var(--gold)" stroke-width="2" opacity="0.6"/><circle cx="50" cy="48" r="6" fill="var(--gold)" opacity="0.15"/><text x="50" y="75" text-anchor="middle" fill="var(--text-secondary)" font-size="11">${v.rom}</text></svg>
+      <div style="font-family:var(--font-korean);font-size:1.25rem;color:var(--gold);font-weight:700">${v.letter}</div>
+      <div style="font-size:0.625rem;color:var(--text-tertiary)">${v.pos}</div>
+    </div>`
+  ).join('');
+  return `<div class="diag-title">🗣 元音口型示意图</div><div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:12px 0">${items}</div>`;
+}
+
+// ── SVG: Consonant articulation ──
+function consonantArticulation(letters, places, tonguePos) {
+  let items = letters.map((l,i) =>
+    `<div style="text-align:center;flex:1;min-width:80px">
+      <svg viewBox="0 0 80 100" width="70" height="90">
+        <rect x="15" y="10" width="50" height="60" rx="6" fill="none" stroke="var(--border-light)" stroke-width="1.5"/>
+        <text x="40" y="45" text-anchor="middle" fill="var(--gold)" font-size="18" font-weight="700">${l}</text>
+        <text x="40" y="85" text-anchor="middle" fill="var(--text-tertiary)" font-size="9">${places[i]}</text>
+        <text x="40" y="96" text-anchor="middle" fill="var(--text-dim)" font-size="8">${tonguePos[i]}</text>
+      </svg>
+      <div style="font-family:var(--font-korean);font-size:1.1rem;color:var(--gold)">${l}</div>
+    </div>`
+  ).join('');
+  return `<div class="diag-title">🗣 辅音发音部位</div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px 0">${items}</div>`;
+}
+
+// ── SVG: Compound vowel system ──
+function compoundVowelDiagram() {
+  return `<div class="diag-title">🔤 韩文组合原理</div>
+<div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding:12px 0">
+  <div style="text-align:center;padding:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius)">
+    <div style="font-size:0.625rem;color:var(--text-tertiary);margin-bottom:4px">初声 (자음)</div>
+    <div style="font-family:var(--font-korean);font-size:1.5rem;color:var(--gold)">ㄱ</div>
+  </div>
+  <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--text-dim)">+</div>
+  <div style="text-align:center;padding:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius)">
+    <div style="font-size:0.625rem;color:var(--text-tertiary);margin-bottom:4px">中声 (모음)</div>
+    <div style="font-family:var(--font-korean);font-size:1.5rem;color:var(--gold)">ㅏ</div>
+  </div>
+  <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--text-dim)">=</div>
+  <div style="text-align:center;padding:12px;background:var(--bg-elevated);border:2px solid var(--border-gold);border-radius:var(--radius)">
+    <div style="font-size:0.625rem;color:var(--text-tertiary);margin-bottom:4px">音节</div>
+    <div style="font-family:var(--font-korean);font-size:1.5rem;color:var(--gold);font-weight:700">가</div>
+  </div>
+</div>
+<div style="text-align:center;font-size:0.6875rem;color:var(--text-tertiary);margin-top:8px">
+  初声 + 中声 + (终声) = 完整音节 · 韩文是<span style="color:var(--gold)">方块拼合式</span>文字
+</div>`;
+}
+
+// ── SVG: Batchim rules ──
+function batchimDiagram() {
+  const rules = [
+    {batchim:'ㄱ ㅋ ㄲ', sound:'[k̚]', label:'软腭闭塞'},
+    {batchim:'ㄴ', sound:'[n]', label:'舌尖齿龈'},
+    {batchim:'ㄷ ㅌ ㅅ ㅆ ㅈ ㅊ ㅎ', sound:'[t̚]', label:'舌尖齿龈'},
+    {batchim:'ㄹ', sound:'[l]', label:'舌尖卷起'},
+    {batchim:'ㅁ', sound:'[m]', label:'双唇紧闭'},
+    {batchim:'ㅂ ㅍ', sound:'[p̚]', label:'双唇闭塞'},
+    {batchim:'ㅇ', sound:'[ŋ]', label:'软腭下垂'},
+  ];
+  let rows = rules.map(r =>
+    `<tr><td style="font-family:var(--font-korean);color:var(--gold);font-weight:600;font-size:0.875rem">${r.batchim}</td><td style="font-weight:700;font-size:0.9375rem">${r.sound}</td><td style="font-size:0.75rem;color:var(--text-secondary)">${r.label}</td></tr>`
+  ).join('');
+  return `<div class="diag-title">📋 收音(받침)发音规则</div>
+  <table class="md-table"><thead><tr><th>收音字母</th><th>发音</th><th>发音部位</th></tr></thead>${rows}</table>`;
+}
+
+// ── SVG: Grammar sentence structure ──
+function grammarStruct(title, formula, example, trans, slot1, slot2) {
+  return `<div class="diag-title">📐 句型结构 — ${title}</div>
+  <div class="grammar-struct">
+    <div class="gs-formula">${formula}</div>
+    <div class="gs-slots">
+      <div class="gs-slot"><span class="gs-slot-label">主题</span><span class="gs-slot-val">${slot1}</span></div>
+      <div class="gs-arrow">→</div>
+      <div class="gs-slot"><span class="gs-slot-label">词尾</span><span class="gs-slot-val">${slot2}</span></div>
+    </div>
+    <div class="gs-example">
+      <div class="gs-ex-ko" onclick="KoreanTTS.speak('${escAttr(example)}')">${example}</div>
+      <div class="gs-ex-zh">${trans}</div>
+    </div>
+  </div>`;
+}
+
+// ── SONGS ──
+let songFilterLevel = 0;
+let currentSong = null;
+let songPlayInterval = null;
+let currentLyricIdx = -1;
+let songFillMode = false;
+let songFillRevealed = [];
+
+async function loadSongs(level) {
+  songFilterLevel = level;
+  const container = document.getElementById('songsList');
+  const filtered = level > 0 ? songData.filter(s => s.level === level) : songData;
+  
+  container.innerHTML = filtered.map(s => `
+    <div class="song-card" onclick="openSong(${s.id})">
+      <span class="sc-level lv${s.level}">Lv.${s.level}</span>
+      <div class="sc-title">${s.title}</div>
+      <div class="sc-artist">${s.artist}</div>
+    </div>`).join('');
+}
+
+function filterSongs(level, el) {
+  document.querySelectorAll('#page-songs .filter-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  loadSongs(level);
+}
+
+function openSong(songId) {
+  const song = songData.find(s => s.id === songId);
+  if (!song) return;
+  currentSong = song;
+  songFillMode = false;
+  songFillRevealed = [];
+  stopSongPlayback();
+  
+  navigateTo('song-detail', song.title);
+  const container = document.getElementById('songDetailContent');
+  
+  const levelLabel = song.level === 1 ? '入门' : song.level === 2 ? '初级' : '中级';
+  const levelClass = 'lv' + song.level;
+  
+  container.innerHTML = `
+    <div class="song-detail-header">
+      <div class="sdh-title">${song.title}</div>
+      <div class="sdh-artist">${song.artist} · <span class="sc-level ${levelClass}">${levelLabel}</span></div>
+      <div class="sdh-desc">${song.desc}</div>
+    </div>
+    <div class="song-controls">
+      <button class="song-ctrl-btn" id="btnSongPlayAll" onclick="playAllLyrics()">▶ 逐句播放</button>
+      <button class="song-ctrl-btn" id="btnSongFill" onclick="toggleSongFillMode()">📝 歌词填空</button>
+      <button class="song-ctrl-btn" onclick="stopSongPlayback()">⏹ 停止</button>
+    </div>
+    <div id="songLyrics">
+      ${song.lyrics.map((l, i) => `
+        <div class="lyric-line" id="lyric-${i}" onclick="playSingleLyric(${i})">
+          <div class="ll-play" id="ll-play-${i}">▶</div>
+          <div class="ll-text">
+            <div class="ll-ko" id="ll-ko-${i}">${l.ko}</div>
+            <div class="ll-zh">${l.zh}</div>
+            ${l.words && l.words.length ? `<div class="ll-words">${l.words.map(w => {
+              const parts = w.split('=');
+              return `<span class="ll-word-tag" onclick="event.stopPropagation();KoreanTTS.speak('${escAttr(parts[0])}')">${w}</span>`;
+            }).join('')}</div>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function playSingleLyric(idx) {
+  if (!currentSong || idx >= currentSong.lyrics.length) return;
+  stopSongPlayback();
+  currentLyricIdx = idx;
+  
+  const line = currentSong.lyrics[idx];
+  highlightLyric(idx);
+  document.getElementById('ll-play-' + idx).classList.add('playing');
+  
+  KoreanTTS.speak(line.ko, 0.75);
+  
+  // Estimate playback duration based on text length
+  const duration = Math.max(2000, line.ko.length * 150);
+  setTimeout(() => {
+    document.getElementById('ll-play-' + idx).classList.remove('playing');
+    currentLyricIdx = -1;
+  }, duration);
+}
+
+function playAllLyrics() {
+  if (!currentSong) return;
+  stopSongPlayback();
+  const btn = document.getElementById('btnSongPlayAll');
+  btn.classList.add('playing');
+  btn.textContent = '⏸ 停止播放';
+  
+  let idx = 0;
+  function playNext() {
+    if (idx >= currentSong.lyrics.length) {
+      stopSongPlayback();
+      return;
+    }
+    playSingleLyric(idx);
+    const line = currentSong.lyrics[idx];
+    const duration = Math.max(2500, line.ko.length * 180);
+    idx++;
+    songPlayInterval = setTimeout(playNext, duration);
+  }
+  playNext();
+}
+
+function stopSongPlayback() {
+  KoreanTTS.stop();
+  if (songPlayInterval) { clearTimeout(songPlayInterval); songPlayInterval = null; }
+  currentLyricIdx = -1;
+  
+  const btn = document.getElementById('btnSongPlayAll');
+  if (btn) { btn.classList.remove('playing'); btn.textContent = '▶ 逐句播放'; }
+  
+  document.querySelectorAll('.ll-play.playing').forEach(el => el.classList.remove('playing'));
+  document.querySelectorAll('.lyric-line.highlight').forEach(el => el.classList.remove('highlight'));
+}
+
+function highlightLyric(idx) {
+  document.querySelectorAll('.lyric-line.highlight').forEach(el => el.classList.remove('highlight'));
+  const el = document.getElementById('lyric-' + idx);
+  if (el) el.classList.add('highlight');
+}
+
+function toggleSongFillMode() {
+  if (!currentSong) return;
+  songFillMode = !songFillMode;
+  songFillRevealed = [];
+  
+  const btn = document.getElementById('btnSongFill');
+  if (songFillMode) {
+    btn.classList.add('active-mode');
+    btn.textContent = '📝 显示答案';
+  } else {
+    btn.classList.remove('active-mode');
+    btn.textContent = '📝 歌词填空';
+  }
+  
+  // Rerender lyrics with blanks in fill mode
+  const container = document.getElementById('songLyrics');
+  container.innerHTML = currentSong.lyrics.map((l, i) => {
+    let koDisplay = l.ko;
+    if (songFillMode) {
+      // Pick a random word to blank out
+      const words = l.ko.split(' ');
+      if (words.length > 1) {
+        const blankIdx = Math.floor(Math.random() * words.length);
+        const blankedWord = words[blankIdx];
+        const revealed = songFillRevealed[i];
+        koDisplay = words.map((w, wi) => {
+          if (wi === blankIdx) {
+            if (revealed) return `<span class="lyric-blank revealed">${w}</span>`;
+            return `<span class="lyric-blank" onclick="revealBlank(${i}, '${escAttr(w)}')">___</span>`;
+          }
+          return w;
+        }).join(' ');
+      }
+    }
+    return `<div class="lyric-line" id="lyric-${i}" onclick="playSingleLyric(${i})">
+      <div class="ll-play" id="ll-play-${i}">▶</div>
+      <div class="ll-text">
+        <div class="ll-ko">${koDisplay}</div>
+        <div class="ll-zh">${l.zh}</div>
+        ${l.words && l.words.length ? `<div class="ll-words">${l.words.map(w => {
+          const parts = w.split('=');
+          return `<span class="ll-word-tag" onclick="event.stopPropagation();KoreanTTS.speak('${escAttr(parts[0])}')">${w}</span>`;
+        }).join('')}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function revealBlank(lineIdx, word) {
+  songFillRevealed[lineIdx] = true;
+  toggleSongFillMode();
+  toggleSongFillMode();
+}
+
+// ── LESSON COMPLETION ──
+async function markLessonComplete(lessonId) {
+  try {
+    await api.updateProgress({ lesson_id: lessonId, status: 'completed', score: 100 });
+    // Store locally for visual feedback
+    const completed = JSON.parse(localStorage.getItem('ka_completed') || '[]');
+    if (!completed.includes(lessonId)) completed.push(lessonId);
+    localStorage.setItem('ka_completed', JSON.stringify(completed));
+    // Update the button visual
+    const btn = document.querySelector('.lesson-actions .btn-outline');
+    if (btn) { btn.textContent = '✅ 已完成'; btn.disabled = true; btn.style.opacity = '0.6'; }
+    toast('✅ 已标记完成！');
+  } catch(e) { toast('操作失败'); }
+}
+
+// ── NEXT LESSON NAVIGATION ──
+function getNextLessonButton(currentLessonId) {
+  // Find the next lesson from courseData
+  if (!courseData || !courseData.length) return '';
+  
+  let allLessons = [];
+  for (const course of courseData) {
+    if (course.units) {
+      for (const unit of course.units) {
+        if (unit.lessons) {
+          for (const l of unit.lessons) {
+            allLessons.push({ ...l, courseId: course.id });
+          }
+        }
+      }
+    }
+  }
+  
+  const currentIdx = allLessons.findIndex(l => l.id === currentLessonId);
+  if (currentIdx >= 0 && currentIdx < allLessons.length - 1) {
+    const next = allLessons[currentIdx + 1];
+    return `<a class="next-lesson-btn" onclick="openLesson(${next.id}, '${escAttr(next.title)}')">下一课 → ${next.title}</a>`;
+  }
+  return '';
+}
+
+// ── LESSON NAVIGATION WITHIN COURSE ──
+function getLessonNav(currentLessonId) {
+  if (!courseData || !courseData.length) return '';
+  
+  let allLessons = [];
+  for (const course of courseData) {
+    if (course.units) {
+      for (const unit of course.units) {
+        if (unit.lessons) {
+          for (const l of unit.lessons) {
+            allLessons.push({ ...l, courseId: course.id, unitTitle: unit.title });
+          }
+        }
+      }
+    }
+  }
+  
+  const currentIdx = allLessons.findIndex(l => l.id === currentLessonId);
+  if (currentIdx < 0) return '';
+  
+  // Check completion state
+  const completed = JSON.parse(localStorage.getItem('ka_completed') || '[]');
+  const currentCompleted = completed.includes(currentLessonId);
+  
+  let html = '<div class="lesson-nav" style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px">';
+  
+  // Prev lesson
+  if (currentIdx > 0) {
+    const prev = allLessons[currentIdx - 1];
+    html += `<a class="lesson-nav-link prev" onclick="openLesson(${prev.id}, '${escAttr(prev.title)}')">← ${prev.title}</a>`;
+  } else {
+    html += '<span class="lesson-nav-link prev disabled">← 已是最前</span>';
+  }
+  
+  // Progress indicator
+  const courseLessons = allLessons.filter(l => l.courseId === allLessons[currentIdx].courseId);
+  const courseIdx = courseLessons.findIndex(l => l.id === currentLessonId);
+  html += `<span style="font-size:0.6875rem;color:var(--text-tertiary);text-align:center">${courseIdx + 1}/${courseLessons.length} 课${currentCompleted ? ' ✅' : ''}</span>`;
+  
+  // Next lesson
+  if (currentIdx < allLessons.length - 1) {
+    const next = allLessons[currentIdx + 1];
+    html += `<a class="lesson-nav-link next" onclick="openLesson(${next.id}, '${escAttr(next.title)}')">${next.title} →</a>`;
+  } else {
+    html += '<span class="lesson-nav-link next disabled">已是最后 →</span>';
+  }
+  
+  html += '</div>';
+  return html;
+}
+
+// ── MARKDOWN: List highlight ──
+function inlineFormat(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>');
+}
+// ══════════════════════════════════════════
+//  WECHAT LOGIN
+// ══════════════════════════════════════════
+function wxLogin() {
+  document.getElementById('wxModal').style.display = 'flex';
+}
+
+function wxCloseModal() {
+  document.getElementById('wxModal').style.display = 'none';
+}
+
+async function wxDoLogin() {
+  wxCloseModal();
+  toast('正在授权登录...');
+  const data = await doMockLogin();
+  if (data && data.user) {
+    localStorage.setItem('ka_wx_linked', '1');
+    updateWxLoginUI();
+    toast('✅ 登录成功');
+  }
+}
+
+async function wxMockLogin() {
+  wxCloseModal();
+  toast('🔧 模拟登录中...');
+  const data = await doMockLogin();
+  if (data && data.user) {
+    localStorage.setItem('ka_wx_linked', '1');
+    localStorage.setItem('ka_wx_nickname', data.user.nickname || '测试用户');
+    updateWxLoginUI();
+    toast('✅ 模拟登录成功');
+  }
+}
+
+function wxLogout() {
+  localStorage.removeItem('ka_wx_linked');
+  localStorage.removeItem('ka_wx_nickname');
+  localStorage.removeItem('ka_token');
+  localStorage.removeItem('ka_user');
+  updateWxLoginUI();
+  toast('已退出登录');
+}
+
+function updateWxLoginUI() {
+  const linked = localStorage.getItem('ka_wx_linked') === '1';
+  const loginArea = document.getElementById('wxLoginArea');
+  const loggedInArea = document.getElementById('wxLoggedInArea');
+  
+  if (linked) {
+    if (loginArea) loginArea.style.display = 'none';
+    if (loggedInArea) loggedInArea.style.display = 'block';
+    const nickname = localStorage.getItem('ka_wx_nickname') || '韩语学习者';
+    const wxNick = document.getElementById('wxNickname');
+    const wxAvatar = document.getElementById('wxAvatarLetter');
+    if (wxNick) wxNick.textContent = nickname;
+    if (wxAvatar) wxAvatar.textContent = nickname.charAt(0).toUpperCase();
+  } else {
+    if (loginArea) loginArea.style.display = 'block';
+    if (loggedInArea) loggedInArea.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════
+//  ERROR NOTEBOOK
+// ══════════════════════════════════════════
+function saveError(err) {
+  let errors = [];
+  try {
+    errors = JSON.parse(localStorage.getItem('ka_errors') || '[]');
+  } catch(e) {}
+  
+  // Avoid duplicate exact errors (same question + answer within same lesson)
+  const isDuplicate = errors.some(e => 
+    e.question === err.question && e.userAnswer === err.userAnswer && e.lessonId === err.lessonId
+  );
+  if (isDuplicate) return;
+  
+  // Keep max 50 errors
+  errors.unshift(err);
+  if (errors.length > 50) errors = errors.slice(0, 50);
+  
+  localStorage.setItem('ka_errors', JSON.stringify(errors));
+}
+
+function loadErrorNotebook() {
+  let errors = [];
+  try {
+    errors = JSON.parse(localStorage.getItem('ka_errors') || '[]');
+  } catch(e) {}
+
+  const countEl = document.getElementById('errorCount');
+  const listEl = document.getElementById('errorList');
+  const emptyEl = document.getElementById('errorEmpty');
+  const topBadge = document.getElementById('topErrorBadge');
+
+  if (countEl) countEl.textContent = errors.length + '题';
+
+  // Update top bar badge
+  if (topBadge) {
+    if (errors.length > 0) {
+      topBadge.textContent = errors.length > 99 ? '99+' : errors.length;
+      topBadge.style.display = 'flex';
+    } else {
+      topBadge.style.display = 'none';
+    }
+  }
+  
+  if (errors.length === 0) {
+    if (listEl) listEl.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (listEl) listEl.style.display = 'block';
+  
+  // Show last 10 errors
+  const recent = errors.slice(0, 10);
+  if (listEl) {
+    listEl.innerHTML = recent.map((e, i) => {
+      const date = new Date(e.timestamp);
+      const dateStr = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+      return `<div class="error-card">
+        <div class="ec-question">${e.question}</div>
+        <div class="ec-answers">
+          <span class="ec-user">❌ 你的: ${e.userAnswer}</span>
+          <span class="ec-correct">✅ 正确: ${e.correctAnswer}</span>
+        </div>
+        <div class="ec-meta">
+          <span>${dateStr} · 课时${e.lessonId}</span>
+          <span class="ec-action" onclick="reviewErrorLesson(${e.lessonId})">重新练习</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function reviewErrorLesson(lessonId) {
+  switchTab('courses');
+  // Navigate to the lesson's quiz
+  setTimeout(() => startQuiz(lessonId), 500);
+}
+
+function clearErrors() {
+  localStorage.removeItem('ka_errors');
+  loadErrorNotebook();
+  toast('错题本已清空');
+}
+
+// ══════════════════════════════════════════
+//  CULTURE NOTES
+// ══════════════════════════════════════════
+const CULTURE_NOTES = {
+  1: '🇰🇷 韩文(한글)是世宗大王于1443年创制的表音文字，被誉为世界上最科学的文字之一。韩文由24个基本字母(14个辅音+10个元音)组成，拼合方式类似方块字。',
+  2: '🇰🇷 韩语是黏着语，通过添加助词(조사)和语尾(어미)来表达语法关系。语序为SOV(主-宾-谓)，与中文的SVO不同。',
+  3: '🇰🇷 韩国有两种计数系统：汉字词数词(일,이,삼...)和固有词数词(하나,둘,셋...)。汉字词用于日期、金钱、电话号码，固有词用于年龄、人数、物品数量。',
+  4: '🇰🇷 韩语中的敬语(존댓말)体系非常复杂。根据说话对象的不同，使用不同的语尾：-요(一般敬语)、-ㅂ니다(正式敬语)、-아/어(半语/朋友之间)。',
+  5: '🇰🇷 韩国的姓氏大约有280多个，其中金(김)、李(이/리)、朴(박)、崔(최)、郑(정)五大姓氏约占人口的一半。',
+  6: '🇰🇷 韩国人喜欢用"우리(我们)"而不是"내(我的)"。比如"우리 집(我们家)"、"우리 엄마(我们妈妈)"。这反映了韩国人的集体主义文化。',
+  7: '🇰🇷 韩国人见面时通常会鞠躬(인사)，同时说"안녕하세요"。鞠躬的角度取决于对方的地位和年龄。',
+  8: '🇰🇷 韩国是筷子文化圈的国家，但韩国筷子通常是金属制的扁平筷子(쇠젓가락)，与中国的木筷和日本的尖头筷不同。',
+  9: '🇰🇷 韩国年龄计算法：出生即为1岁，过新年就长1岁(不是生日)。所以韩国人通常比国际年龄大1-2岁。2023年韩国已开始改用国际年龄。',
+  10: '🇰🇷 K-POP是韩国文化输出的代表。BTS(방탄소년단)的歌曲中经常出现韩语日常表达，如"피 땀 눈물(血汗泪)"、"봄날(春日)"等。',
+  11: '🇰🇷 韩国的敬酒礼仪：接酒时要用双手；倒酒时要用右手持瓶，左手轻托右臂；喝酒时要稍微侧身，不对着长辈正面喝酒。',
+  12: '🇰🇷 韩国人非常重视教育(교육)，高考(수능)当天全国会调整交通，飞机起降时间也会改变以确保听力考试安静。',
+  13: '🇰🇷 在韩国，数字4(사)因为与"死"同音被视为不吉利，很多建筑物的4楼用"F"代替。这个习俗来源于中国汉字文化。',
+  14: '🇰🇷 韩国料理中泡菜(김치)是必不可少的配菜。韩国人常说"김치 없인 못 살아(没有泡菜活不下去)"。每家每户都有自己独特的泡菜配方。',
+  15: '🇰🇷 韩国的"빨리 빨리(快点快点)"文化闻名世界。韩国是世界上最快的互联网国家之一，外卖、快递都追求极致速度。',
+  16: '🇰🇷 韩语中的拟声拟态词(의성어·의태어)非常丰富。比如"반짝반짝(一闪一闪)"、"주룩주룩(哗啦啦)"、"살랑살랑(轻轻吹拂)"等。',
+  17: '🇰🇷 韩国人在外出就餐时，通常由年长者或请客的人买单。AA制(더치페이)在年轻人中越来越普遍，但在传统场合仍不太常见。',
+  18: '🇰🇷 韩国的"눈치(眼力见)"文化非常重要。눈치指的是察言观色、理解气氛的能力。눈치 없이(没有眼力见)是被认为缺乏社交智慧的表现。',
+  19: '🇰🇷 韩国人表达感情时常用"~죠?"(对吧?)、"~네요"(啊~)这样的语尾来表达共感。韩国文化强调情感共鸣(공감)，这在语言中体现得很充分。',
+  20: '🇰🇷 在韩国，递东西(尤其是钱)时应该用右手，或双手递出。用左手递东西被认为是不礼貌的。这与韩国以右为尊的传统有关。',
+  21: '🇰🇷 韩国的情人节(밸런타인데이)是女生送男生巧克力，3月14日白色情人节(화이트데이)是男生回礼。还有4月14日黑色情人节(블랙데이)，单身的人会吃炸酱面。',
+  22: '🇰🇷 韩国人打电话时说"여보세요(喂)"，挂电话前说"들어가세요(请回去吧)"而不是"再见"。这是韩语特有的电话礼仪表达。',
+  23: '🇰🇷 韩国的"정(情)"文化：정是一种难以翻译的情感，包含了依恋、关怀、温情和羁绊。韩国人常说"정이 들다(产生感情)"、정이 많다(多情)。',
+  24: '🇰🇷 韩语中有大量来自中文的汉字词(한자어)，约占词汇量的60%。学习汉字词可以帮助快速扩大词汇量。例如학교(学校)、가족(家族)、음악(音乐)。',
+  25: '🇰🇷 韩国人在吃饭前会说"잘 먹겠습니다(我会好好吃的)"，吃完后说"잘 먹었습니다(我吃好了)"。这是对准备食物的人的感谢表达。',
+  26: '🇰🇷 韩国的"해장(解酒)"文化非常发达。해장국(醒酒汤)、콩나물국(豆芽汤)是韩国人宿醉后的传统解酒食物。',
+  27: '🇰🇷 韩国的반말(半语)和존댓말(敬语)使用规则：对年长者、陌生人、上级必须用敬语；对亲密的同龄人或年幼者可以用半语。用错语体可能被认为无礼。',
+  28: '🇰🇷 韩国人用手指东西或召唤他人时，应用手掌朝上的手势，而不是用一个手指指人。用一个手指指人被认为非常不礼貌。',
+  29: '🇰🇷 韩国的"도깨비(鬼怪/도깨비)"与中国的妖怪不同，韩国鬼怪更调皮可爱，喜欢恶作剧但不邪恶。热门韩剧《도깨비》让这个概念全球闻名。',
+  30: '🇰🇷 韩国的传统服饰한복(韩服)以优美的线条和鲜艳的色彩著称。现代改良韩服(생활한복)在日常生活中也越来越受欢迎。',
+  31: '🇰🇷 韩语中"사랑해(我爱你)"是一个很重的词，不轻易使用。韩国人更常用"좋아해(喜欢你)"来表达好感。告白文化(고백)在韩国年轻人中很流行。',
+  32: '🇰🇷 韩国的"미(美)"文化：韩国是世界上整容手术比例最高的国家之一，对美的追求也反映在语言中——有大量描述外貌的词汇，如"예쁘다(漂亮)"、"잘생겼다(帅)"。',
+  33: '🇰🇷 韩国人在表达感谢时，最常用"감사합니다"(正式)和"고마워요"(日常)。收到礼物时要说"잘 쓰겠습니다(我会好好用的)"，被请客后说"잘 먹었습니다(我吃好了)"。',
+  34: '🇰🇷 韩国的"빨래(洗衣)"文化：韩国人普遍使用洗衣机，但一些传统韩服仍需手洗。韩国的公寓里通常都有阳台晾衣空间(베란다)，烘干机也越来越普及。',
+  35: '🇰🇷 韩国的节日文化：最重要的节日是설날(春节)和추석(秋夕/中秋节)。설날吃떡국(年糕汤)，추석吃송편(松饼)。此外还有삼일절(三一节)、광복절(光复节)等纪念日。',
+};
+
+function getCultureNote(lessonId) {
+  const note = CULTURE_NOTES[lessonId];
+  if (!note) return '';
+  
+  return `<div class="culture-note">
+    <div class="cn-title">🇰🇷 文化笔记</div>
+    <div class="cn-body">${note}</div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+//  LEADERBOARD
+// ══════════════════════════════════════════
+function getLocalXP() {
+  try {
+    return parseInt(localStorage.getItem('ka_total_xp') || '0');
+  } catch(e) { return 0; }
+}
+
+function addXP(amount) {
+  const current = getLocalXP();
+  localStorage.setItem('ka_total_xp', current + amount);
+}
+
+// Hook into quiz result to track XP
+const _origShowQuizResult = showQuizResult;
+showQuizResult = function() {
+  const correct = quizState.answers.filter(a => a.is_correct).length;
+  const total = quizState.answers.length;
+  const score = total > 0 ? Math.round(correct / total * 100) : 0;
+  const xpGained = Math.round(score / 10) + Math.floor(correct * 2);
+  addXP(xpGained);
+  _origShowQuizResult();
+};
+
+async function loadLeaderboard() {
+  const container = document.getElementById('leaderboardList');
+  container.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
+  
+  // Build leaderboard from localStorage + mock data
+  let entries = [];
+  
+  // Current user
+  const myXP = getLocalXP();
+  const nickname = localStorage.getItem('ka_wx_nickname') || '韩语学习者';
+  const level = Math.floor(myXP / 100) + 1;
+  entries.push({ name: nickname, xp: myXP, level: level, isMe: true });
+  
+  // Mock other users
+  const mockNames = ['韩语达人', '首尔在召唤', 'TOPIK冲刺', '韩国通', 'K-POP迷', '韩语小天才', '旅行韩国', '留学准备中', '한국어짱', '语言爱好者'];
+  mockNames.forEach(name => {
+    if (name !== nickname) {
+      const xp = myXP + Math.floor(Math.random() * 500) - 100 + Math.floor(Math.random() * 200);
+      entries.push({ name, xp: Math.max(0, xp), level: Math.floor(Math.max(0, xp) / 100) + 1, isMe: false });
+    }
+  });
+  
+  // Sort by XP desc
+  entries.sort((a, b) => b.xp - a.xp);
+  
+  // Render top 10
+  const top10 = entries.slice(0, 10);
+  container.innerHTML = top10.map((e, i) => {
+    let rankClass = '';
+    let rankDisplay = (i + 1);
+    if (i === 0) rankClass = 'gold';
+    else if (i === 1) rankClass = 'silver';
+    else if (i === 2) rankClass = 'bronze';
+    
+    return `<div class="leaderboard-row${e.isMe ? ' lb-you' : ''}">
+      <div class="lb-rank ${rankClass}">${i < 3 ? ['🥇','🥈','🥉'][i] : rankDisplay}</div>
+      <div class="lb-info">
+        <div class="lb-name">${e.name}${e.isMe ? ' (你)' : ''}</div>
+        <div class="lb-level">Level ${e.level}</div>
+      </div>
+      <div class="lb-xp">${e.xp} XP</div>
+    </div>`;
+  }).join('');
+  
+  // Show my rank if not in top 10
+  const myEntry = entries.find(e => e.isMe);
+  if (myEntry) {
+    const myRank = entries.indexOf(myEntry) + 1;
+    const rankEl = document.getElementById('lbMyRank');
+    const rankTextEl = document.getElementById('lbMyRankText');
+    if (rankEl && rankTextEl) {
+      if (myRank > 10) {
+        rankEl.style.display = 'block';
+        rankTextEl.textContent = '第 ' + myRank + ' 名 · ' + myEntry.xp + ' XP';
+      } else {
+        rankEl.style.display = 'none';
+      }
+    }
+  }
+}
+
+// Hook daily challenge XP
+const _origSubmitDaily = submitDaily;
+submitDaily = function() {
+  const answer = document.getElementById('dailyAnswer').value.trim();
+  if (!answer) { toast('请输入答案'); return; }
+  api.getDaily().then(challenge => {
+    return api.submitDaily(challenge.id, answer);
+  }).then(result => {
+    if (result) {
+      if (result.xp_gained) addXP(result.xp_gained);
+      document.getElementById('dailyCard').style.display = 'none';
+      document.getElementById('dailyResult').style.display = 'block';
+      document.getElementById('dailyResult').innerHTML = `
+        <div class="card ${result.is_correct ? 'card-gold' : ''}">
+          <div class="text-center" style="font-size:1.5rem;margin-bottom:8px">${result.is_correct ? '正确!' : '错误'}</div>
+          <div class="text-center" style="color:var(--text-secondary);margin-bottom:4px">${result.explanation}</div>
+          <div class="text-center" style="color:var(--gold);font-weight:700">+${result.xp_gained} XP</div>
+          <div class="text-center text-xs mt-4" style="color:var(--text-tertiary)">连续打卡 ${result.streak} 天</div>
+        </div>
+      `;
+      loadDaily();
+      loadHomePage();
+    }
+  }).catch(e => { toast('提交失败'); });
+};
+
+// ══════════════════════════════════════════
+//  AI CONVERSATION PRACTICE
+// ══════════════════════════════════════════
+let chatScenario = 'restaurant';
+let chatMessages = [];
+let chatLoading = false;
+
+const SCENARIO_PROMPTS = {
+  restaurant: { system: '你是一个韩国餐厅服务员，正在接待顾客。请用韩语进行对话，并在每句韩语后用中文翻译。', welcome: '안녕하세요! 어서 오세요. 몇 분이세요?\n您好！欢迎光临，请问几位？', phrases: ['메뉴 주세요 (请给我菜单)', '김치찌개 하나 주세요 (请给我一份泡菜汤)', '계산해 주세요 (请结账)', '맛있어요! (很好吃!)'] },
+  meeting: { system: '你是第一次见面的韩国朋友，正在互相问候。请用韩语进行对话，并在每句韩语后用中文翻译。', welcome: '안녕하세요! 처음 뵙겠습니다. 이름이 뭐예요?\n您好！初次见面，请问您叫什么名字？', phrases: ['반갑습니다 (见到您很高兴)', '저는 중국 사람이에요 (我是中国人)', '한국어를 배우고 있어요 (我在学韩语)', '잘 부탁드립니다 (请多关照)'] },
+  travel: { system: '你是一个在韩国旅游时遇到的当地人，正在给游客指路或推荐景点。请用韩语进行对话，并在每句韩语后用中文翻译。', welcome: '안녕하세요! 어디 가고 싶으세요? 제가 도와드릴게요.\n您好！想去哪里呢？我来帮您。', phrases: ['경복궁에 어떻게 가요? (景福宫怎么走？)', '여기서 멀어요? (离这里远吗？)', '추천해 주세요 (请推荐一下)', '사진 찍어 주세요 (请帮我拍照)'] },
+  shopping: { system: '你是一个韩国商店店员，正在接待顾客。请用韩语进行对话，并在每句韩语后用中文翻译。', welcome: '어서 오세요! 찾으시는 물건 있으세요?\n欢迎光临！请问您找什么商品？', phrases: ['이거 얼마예요? (这个多少钱？)', '좀 깎아 주세요 (请便宜一点)', '다른 색깔 있어요? (有其他颜色吗？)', '포장해 주세요 (请帮我包装)'] },
+  daily: { system: '你是一个韩国朋友，正在和对方进行日常闲聊。请用韩语进行对话，并在每句韩语后用中文翻译。', welcome: '안녕! 오늘 기분이 어때?\n嗨！今天心情怎么样？', phrases: ['오늘 뭐 했어요? (今天做了什么？)', '날씨가 좋아요 (天气很好)', '뭐 먹고 싶어요? (想吃什么？)', '내일 뭐 할 거예요? (明天做什么？)'] },
+  cafe: { system: '你是一个韩国咖啡厅店员，正在接待顾客。请用韩语进行对话，并在每句韩语后用中文翻译。', welcome: '안녕하세요! 주문 도와드릴까요?\n您好！请问需要点什么呢？', phrases: ['아메리카노 한 잔 주세요 (请给我一杯美式咖啡)', '따뜻한 걸로 주세요 (请给我热的)', '와이파이 비밀번호가 뭐예요? (WiFi密码是什么？)', '여기서 공부해도 돼요? (可以在这里学习吗？)'] }
+};
+
+function loadChatPage() {
+  const prompt = SCENARIO_PROMPTS[chatScenario];
+  if (!chatMessages.length) {
+    document.getElementById('chatWelcome').style.display = 'block';
+    document.getElementById('chatArea').querySelectorAll('.chat-bubble').forEach(b => b.remove());
+  }
+  updateQuickPhrases();
+}
+
+function switchToScenario(scenarioId) {
+  chatScenario = scenarioId;
+  chatMessages = [];
+  document.getElementById('chatWelcome').style.display = 'block';
+  const chatArea = document.getElementById('chatArea');
+  chatArea.querySelectorAll('.chat-bubble, .chat-loading').forEach(b => b.remove());
+
+  document.querySelectorAll('.scenario-pill').forEach(p => p.classList.remove('active'));
+  const activePill = document.querySelector(`.scenario-pill[onclick*="${scenarioId}"]`);
+  if (activePill) activePill.classList.add('active');
+
+  updateQuickPhrases();
+}
+
+function updateQuickPhrases() {
+  const prompt = SCENARIO_PROMPTS[chatScenario];
+  const container = document.getElementById('quickPhrases');
+  if (!prompt || !prompt.phrases) return;
+  container.innerHTML = prompt.phrases.map(p =>
+    `<span class="quick-phrase" onclick="sendQuickPhrase('${escAttr(p.split(' (')[0])}')">${p}</span>`
+  ).join('');
+}
+
+function sendQuickPhrase(text) {
+  document.getElementById('chatInput').value = text;
+  sendChatMessage();
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || chatLoading) return;
+  input.value = '';
+
+  document.getElementById('chatWelcome').style.display = 'none';
+
+  // Append user bubble
+  appendChatBubble('user', text, '');
+
+  // Show loading
+  chatLoading = true;
+  const chatArea = document.getElementById('chatArea');
+  const loadingEl = document.createElement('div');
+  loadingEl.className = 'chat-loading';
+  loadingEl.id = 'chatLoading';
+  loadingEl.innerHTML = '<div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>';
+  chatArea.appendChild(loadingEl);
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  try {
+    const prompt = SCENARIO_PROMPTS[chatScenario];
+    const history = chatMessages.slice(-8);
+
+    const resp = await api.request('/chat', {
+      method: 'POST',
+      data: {
+        scenario: chatScenario,
+        system_prompt: prompt.system,
+        message: text,
+        history: history
+      }
+    });
+
+    // Remove loading
+    const ld = document.getElementById('chatLoading');
+    if (ld) ld.remove();
+    chatLoading = false;
+
+    if (resp && resp.korean) {
+      const korean = resp.korean || '';
+      const chinese = resp.chinese || '';
+      appendChatBubble('ai', korean, chinese);
+      chatMessages.push({ role: 'user', content: text });
+      chatMessages.push({ role: 'assistant', content: korean });
+    } else {
+      // Fallback mock response
+      const mock = getMockResponse(text);
+      appendChatBubble('ai', mock.korean, mock.chinese);
+      chatMessages.push({ role: 'user', content: text });
+      chatMessages.push({ role: 'assistant', content: mock.korean });
+    }
+  } catch(e) {
+    const ld = document.getElementById('chatLoading');
+    if (ld) ld.remove();
+    chatLoading = false;
+    // Fallback mock
+    const mock = getMockResponse(text);
+    appendChatBubble('ai', mock.korean, mock.chinese);
+    chatMessages.push({ role: 'user', content: text });
+    chatMessages.push({ role: 'assistant', content: mock.korean });
+  }
+}
+
+function getMockResponse(userInput) {
+  const hasHangul = /[\uAC00-\uD7AF]/.test(userInput);
+  if (hasHangul) {
+    const responses = [
+      { korean: '아, 그렇군요! 이해했어요.', chinese: '啊，原来如此！我明白了。' },
+      { korean: '네, 좋아요! 계속 이야기해 볼까요?', chinese: '好的，很好！我们继续聊吧？' },
+      { korean: '잘하셨어요! 한국어 실력이 좋아요.', chinese: '说得很好！您的韩语水平不错。' },
+      { korean: '재미있어요! 또 다른 이야기 해 볼까요?', chinese: '很有趣！我们再聊点别的吧？' },
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+  return { korean: '네, 알겠습니다! 한국어로 말씀해 주세요.', chinese: '好的，我明白了！请用韩语说吧。' };
+}
+
+function appendChatBubble(role, korean, chinese) {
+  const chatArea = document.getElementById('chatArea');
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble ' + role;
+
+  if (role === 'ai') {
+    bubble.innerHTML = `
+      <div class="cb-korean" onclick="event.stopPropagation();KoreanTTS.speak('${escAttr(korean)}')">
+        ${korean} <span class="cb-speak">🔊</span>
+      </div>
+      <div class="cb-chinese">${chinese}</div>`;
+  } else {
+    bubble.textContent = korean;
+  }
+
+  chatArea.appendChild(bubble);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// ══════════════════════════════════════════
+//  PODCAST AUDIO COURSE
+// ══════════════════════════════════════════
+let podcastScripts = [];
+let currentPodcast = null;
+let currentSectionIdx = 0;
+let podcastPlaying = false;
+let podcastTimer = null;
+let podcastSpeed = 1;
+let podcastAutoAdvance = true;
+
+const PODCAST_DATA = [
+  { id: 'p1', title: '韩语发音入门', lessons: '1-5课', duration: '约15分钟', icon: '🔤', desc: '从韩文基本字母开始，学习元音、辅音、收音的发音规则和口型技巧。' },
+  { id: 'p2', title: '韩语日常问候', lessons: '第6课', duration: '约8分钟', icon: '👋', desc: '学习韩国人见面时的各种问候方式，以及敬语和半语的区别使用。' },
+  { id: 'p3', title: '韩语数字与时间', lessons: '11-14课', duration: '约12分钟', icon: '🔢', desc: '掌握韩语两种数字系统(汉字词和固有词)以及时间、日期、年龄的说法。' },
+  { id: 'p4', title: '韩语基础语法', lessons: '16-18课', duration: '约15分钟', icon: '📐', desc: '理解韩语动词形容词的语尾变化，包括现在时、过去时和将来时。' },
+  { id: 'p5', title: '韩语购物与餐厅', lessons: '10, 21课', duration: '约10分钟', icon: '🛒', desc: '学习在韩国购物和餐厅用餐时必备的实用韩语表达。' },
+  { id: 'p6', title: '韩语歌曲学韩语', lessons: '歌曲概览', duration: '约12分钟', icon: '🎵', desc: '通过K-POP歌曲学习有趣的韩语词汇和日常表达方式。' }
+];
+
+const PODCAST_SCRIPTS = {
+  p1: [
+    { type: 'title', text: '韩语发音入门' },
+    { type: 'narration', text: '欢迎来到韩语发音入门播客！我是文文的韩语老师。今天我们将一起探索韩文(Hangul)的基本发音系统。韩文是世宗大王在1443年创制的表音文字，由24个基本字母组成，是世界上最科学的文字之一。' },
+    { type: 'narration', text: '首先，我们来学习六个基本元音。韩语元音的发音位置分为前舌、后舌、高舌、低舌。请跟我一起读：' },
+    { type: 'korean', text: 'ㅏ (a) — 嘴巴张大，自然开口，像中文的"啊"' },
+    { type: 'korean', text: 'ㅓ (eo) — 嘴微张，舌根稍缩，类似英语的"uh"' },
+    { type: 'korean', text: 'ㅗ (o) — 嘴唇拢圆前伸，像中文的"哦"' },
+    { type: 'korean', text: 'ㅜ (u) — 嘴唇拢圆更紧，像中文的"屋"' },
+    { type: 'korean', text: 'ㅡ (eu) — 嘴角向两边拉开，嘴唇扁平' },
+    { type: 'korean', text: 'ㅣ (i) — 嘴角微收，舌面抬高，像中文的"衣"' },
+    { type: 'practice', text: '请跟读练习：ㅏ ㅓ ㅗ ㅜ ㅡ ㅣ — 每个元音读三遍，注意嘴型变化' },
+    { type: 'narration', text: '很好！接下来学习基础辅音。韩语辅音按照发音部位分为：双唇音、齿龈音、硬腭音、软腭音和喉音。' },
+    { type: 'korean', text: 'ㄱ (g/k) — 舌根顶住软腭，像"歌"的声母' },
+    { type: 'korean', text: 'ㄴ (n) — 舌尖抵住上齿龈，像"呢"的声母' },
+    { type: 'korean', text: 'ㄷ (d/t) — 舌尖抵住上齿龈，像"的"的声母' },
+    { type: 'korean', text: 'ㄹ (r/l) — 舌尖卷起轻触上颚，类似弹舌音' },
+    { type: 'korean', text: 'ㅁ (m) — 双唇紧闭，像"摸"的声母' },
+    { type: 'practice', text: '拼读练习：가 나 다 라 마 (ga na da ra ma) — 每个音节读两遍' },
+    { type: 'narration', text: '接下来介绍韩语独特的收音(Batchim)规则。韩语音节的末尾可以有一个收音辅音，但它的发音会受到限制——只有7种发音方式。' },
+    { type: 'korean', text: 'ㄱ ㅋ ㄲ → 都发 [k̚] 音' },
+    { type: 'korean', text: 'ㄷ ㅌ ㅅ ㅆ ㅈ ㅊ ㅎ → 都发 [t̚] 音' },
+    { type: 'korean', text: 'ㅂ ㅍ → 都发 [p̚] 音' },
+    { type: 'practice', text: '请跟读：각 낫 밥 — 注意收音的不同发音位置' },
+    { type: 'narration', text: '这就是韩语发音的基础入门。记住：韩文是方块拼合式文字，初声+中声+终声组成一个完整音节。多听多练，你的发音会越来越好！我们下期播客再见！' }
+  ],
+  p2: [
+    { type: 'title', text: '韩语日常问候' },
+    { type: 'narration', text: '大家好！欢迎来到韩语日常问候播客。问候是任何语言学习的第一步，今天我们就来学习韩国人见面时的各种表达方式。' },
+    { type: 'narration', text: '韩国语有严格的敬语体系。对长辈、陌生人、上级必须使用敬语；对亲密的同龄人或年幼者可以使用半语。我们先学习最常用的敬语问候：' },
+    { type: 'korean', text: '안녕하세요 — 您好（最常用的敬语问候）' },
+    { type: 'korean', text: '안녕하십니까 — 您好（非常正式的场合使用）' },
+    { type: 'korean', text: '안녕 — 嗨/你好（半语，对朋友使用）' },
+    { type: 'practice', text: '请跟读三种问候，注意语气的正式程度不同' },
+    { type: 'narration', text: '初次见面时的表达：' },
+    { type: 'korean', text: '처음 뵙겠습니다 — 初次见面（正式）' },
+    { type: 'korean', text: '만나서 반갑습니다 — 见到您很高兴' },
+    { type: 'korean', text: '잘 부탁드립니다 — 请多多关照' },
+    { type: 'practice', text: '请跟读：처음 뵙겠습니다. 만나서 반갑습니다. 잘 부탁드립니다.' },
+    { type: 'narration', text: '告别时的表达：' },
+    { type: 'korean', text: '안녕히 가세요 — 请慢走（对离开的人说）' },
+    { type: 'korean', text: '안녕히 계세요 — 请留步（对留下的人说）' },
+    { type: 'korean', text: '또 만나요 — 再见（"再见面吧"）' },
+    { type: 'practice', text: '跟读练习：区分가세요和계세요的使用场景' },
+    { type: 'narration', text: '总结：韩国人的问候方式体现了尊重和礼貌的文化。记住对不同的人使用适当的语体，这是韩语学习中最基本也是最重要的部分。谢谢收听！' }
+  ],
+  p3: [
+    { type: 'title', text: '韩语数字与时间' },
+    { type: 'narration', text: '大家好！欢迎来到韩语数字与时间播客。韩语中有两套数字系统，这可能是初学者最困惑的部分之一。今天我们一起来攻克它！' },
+    { type: 'narration', text: '第一套：汉字词数词。用于日期、金钱、电话号码、楼层等。' },
+    { type: 'korean', text: '일(1) 이(2) 삼(3) 사(4) 오(5) 육(6) 칠(7) 팔(8) 구(9) 십(10)' },
+    { type: 'practice', text: '请跟读汉字词数词1-10' },
+    { type: 'narration', text: '第二套：固有词数词。用于年龄、人数、物品数量、时间(小时)等。' },
+    { type: 'korean', text: '하나(1) 둘(2) 셋(3) 넷(4) 다섯(5) 여섯(6) 일곱(7) 여덟(8) 아홉(9) 열(10)' },
+    { type: 'practice', text: '请跟读固有词数词1-10' },
+    { type: 'narration', text: '现在学习时间表达。小时用固有词，分钟用汉字词：' },
+    { type: 'korean', text: '한 시 (1点)  /  두 시 (2点)  /  세 시 (3点)' },
+    { type: 'korean', text: '한 시 삼십 분 — 1点30分' },
+    { type: 'korean', text: '지금 몇 시예요? — 现在几点了？' },
+    { type: 'practice', text: '请练习说出现在的时间：지금 ___시 ___분이에요' },
+    { type: 'narration', text: '日期表达：年、月、日都用汉字词。' },
+    { type: 'korean', text: '2024년 10월 15일 — 2024年10月15日' },
+    { type: 'korean', text: '오늘은 무슨 요일이에요? — 今天星期几？' },
+    { type: 'practice', text: '跟读日期和星期的表达方式' },
+    { type: 'narration', text: '记住：数字系统是韩语学习的基础，多在实际场景中练习使用，很快就会熟练的！下期见！' }
+  ],
+  p4: [
+    { type: 'title', text: '韩语基础语法' },
+    { type: 'narration', text: '欢迎来到韩语基础语法播客！韩语是黏着语，通过添加语尾来表达语法关系。今天我们学习三个最核心的时态语尾。' },
+    { type: 'narration', text: '首先学习现在时：动词/形容词词干 + 아/어요。这是韩语中最常用的敬语体。' },
+    { type: 'korean', text: '먹다(吃) → 먹어요 (吃/在吃)' },
+    { type: 'korean', text: '가다(去) → 가요 (去/在去)' },
+    { type: 'korean', text: '좋다(好) → 좋아요 (好)' },
+    { type: 'korean', text: '공부하다(学习) → 공부해요 (学习/在学习)' },
+    { type: 'practice', text: '请跟读并模仿现在时的变化方式' },
+    { type: 'narration', text: '接下来是过去时：词干 + 았/었어요。' },
+    { type: 'korean', text: '먹다 → 먹었어요 (吃了)' },
+    { type: 'korean', text: '가다 → 갔어요 (去了)' },
+    { type: 'korean', text: '보다 → 봤어요 (看了)' },
+    { type: 'korean', text: '어제 뭐 했어요? — 昨天做了什么？' },
+    { type: 'practice', text: '请跟读过去时，注意아/어的选择取决于词干元音' },
+    { type: 'narration', text: '最后是将来时：词干 + (으)ㄹ 거예요。' },
+    { type: 'korean', text: '하다 → 할 거예요 (会做的/打算做)' },
+    { type: 'korean', text: '먹다 → 먹을 거예요 (会吃的/打算吃)' },
+    { type: 'korean', text: '내일 뭐 할 거예요? — 明天打算做什么？' },
+    { type: 'practice', text: '请跟读将来时，注意有无收音影响(으)的添加' },
+    { type: 'narration', text: '语法总结：韩语的语尾变化显示了动作的时间和语气。多造句练习是掌握语法的最佳方式！화이팅!' }
+  ],
+  p5: [
+    { type: 'title', text: '韩语购物与餐厅' },
+    { type: 'narration', text: '欢迎来到实用韩语播客！今天学习在韩国购物和餐厅用餐的必备表达，这些都是旅行中最常用的韩语。' },
+    { type: 'narration', text: '首先学习购物场景。走进商店时店员会说：' },
+    { type: 'korean', text: '어서 오세요! — 欢迎光临！' },
+    { type: 'korean', text: '찾으시는 물건 있으세요? — 请问您找什么？' },
+    { type: 'narration', text: '你可以这样回答：' },
+    { type: 'korean', text: '구경만 할게요 — 我只是看看' },
+    { type: 'korean', text: '이거 얼마예요? — 这个多少钱？' },
+    { type: 'korean', text: '좀 깎아 주세요 — 请便宜一点吧' },
+    { type: 'practice', text: '请跟读购物常用语' },
+    { type: 'narration', text: '接下来是餐厅场景。点餐时这样说：' },
+    { type: 'korean', text: '메뉴 주세요 — 请给我菜单' },
+    { type: 'korean', text: '김치찌개 하나 주세요 — 请给我一份泡菜汤' },
+    { type: 'korean', text: '맛있게 드세요! — 请慢用！(吃得开心)' },
+    { type: 'korean', text: '잘 먹겠습니다 — 我会好好吃的（饭前）' },
+    { type: 'korean', text: '잘 먹었습니다 — 我吃好了（饭后）' },
+    { type: 'practice', text: '请跟读餐厅用语，记住饭前饭后的礼貌表达' },
+    { type: 'narration', text: '结账时：' },
+    { type: 'korean', text: '계산해 주세요 — 请结账' },
+    { type: 'korean', text: '카드 돼요? — 可以刷卡吗？' },
+    { type: 'korean', text: '영수증 주세요 — 请给我收据' },
+    { type: 'practice', text: '现在模拟一个完整场景：进店→点餐→吃饭→结账。每个环节都说一说！' },
+    { type: 'narration', text: '在韩国餐厅吃饭时，通常会提供免费的반찬(小菜)，包括泡菜等。服务很棒吧？下期再见！' }
+  ],
+  p6: [
+    { type: 'title', text: '韩语歌曲学韩语' },
+    { type: 'narration', text: '欢迎来到韩语歌曲学韩语播客！通过K-POP学习韩语是最有趣的方式之一。今天我们来通过热门歌曲学习实用韩语表达。' },
+    { type: 'narration', text: 'K-POP歌曲中经常出现的词汇和表达：' },
+    { type: 'korean', text: '사랑해 — 我爱你（最经典的歌词词汇）' },
+    { type: 'korean', text: '보고 싶어 — 想你 / 想见你' },
+    { type: 'korean', text: '괜찮아 — 没关系 / 没事' },
+    { type: 'korean', text: '행복해 — 幸福 / 开心' },
+    { type: 'practice', text: '请跟读这些歌词中高频出现的词汇' },
+    { type: 'narration', text: '青春主题歌曲中的表达：' },
+    { type: 'korean', text: '꿈을 꾸다 — 做梦 / 怀有梦想' },
+    { type: 'korean', text: '달려가다 — 奔跑向前' },
+    { type: 'korean', text: '포기하지 마 — 不要放弃（半语）' },
+    { type: 'korean', text: '함께 가자 — 一起走吧' },
+    { type: 'practice', text: '请跟读，感受韩国流行文化中的正能量表达' },
+    { type: 'narration', text: '学习歌曲的实用技巧：1)先听懂关键词 2)跟着唱练习发音 3)查歌词学习新词汇 4)理解歌词背后的文化。' },
+    { type: 'korean', text: '노래로 배우는 한국어 — 재미있어요! (用歌学韩语—很有趣!)' },
+    { type: 'practice', text: '选一首你喜欢的K-POP歌曲，找出5个你认识的韩语词汇' },
+    { type: 'narration', text: '通过歌曲学韩语不仅有趣，还能培养语感和发音。K-POP是世界认识韩国的窗口，也是你学习韩语的最佳伙伴！감사합니다!' }
+  ]
+};
+
+function loadPodcasts() {
+  const container = document.getElementById('podcastList');
+  document.getElementById('podcastScript').style.display = 'none';
+  stopPodcastPlayback();
+
+  container.innerHTML = PODCAST_DATA.map(p => `
+    <div class="podcast-card" id="pc-${p.id}" onclick="openPodcast('${p.id}')">
+      <div class="pc-icon">${p.icon}</div>
+      <div class="pc-info">
+        <div class="pc-title">${p.title}</div>
+        <div class="pc-meta">
+          <span>📚 ${p.lessons}</span>
+          <span>⏱ ${p.duration}</span>
+        </div>
+      </div>
+      <div class="pc-play" onclick="event.stopPropagation();podcastQuickPlay('${p.id}')">▶</div>
+    </div>`).join('');
+}
+
+function openPodcast(podcastId) {
+  const podcast = PODCAST_DATA.find(p => p.id === podcastId);
+  if (!podcast) return;
+
+  currentPodcast = podcast;
+  currentSectionIdx = 0;
+  podcastPlaying = false;
+  stopPodcastPlayback();
+
+  // Highlight active card
+  document.querySelectorAll('.podcast-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('pc-' + podcastId);
+  if (card) card.classList.add('active');
+
+  // Show script
+  const script = PODCAST_SCRIPTS[podcastId] || [];
+  const container = document.getElementById('podcastScript');
+  container.style.display = 'block';
+
+  container.innerHTML = `
+    <div class="podcast-section-title">${podcast.title}</div>
+    <div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:12px">📚 ${podcast.lessons} · ⏱ ${podcast.duration}</div>
+    <div style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6">${podcast.desc}</div>
+    <button class="btn btn-primary" style="margin-bottom:16px" onclick="podcastPlayAll()">▶ 连续播放全部内容</button>
+    <div id="podcastSections">
+      ${script.map((s, i) => {
+        let cls = 'podcast-section ' + s.type;
+        let content = s.text;
+        if (s.type === 'korean') {
+          content = `<span class="ps-speak" id="ps-speak-${i}">▶</span> ${s.text}`;
+        }
+        return `<div class="${cls}" id="ps-${i}" onclick="${s.type === 'korean' ? 'podcastPlaySection('+i+')' : ''}">${content}</div>`;
+      }).join('')}
+    </div>`;
+
+  // Show player
+  document.getElementById('podcastPlayer').style.display = 'flex';
+  document.getElementById('ppTitle').textContent = podcast.title;
+  document.getElementById('ppProgressFill').style.width = '0%';
+}
+
+function podcastQuickPlay(podcastId) {
+  openPodcast(podcastId);
+  setTimeout(() => podcastPlayAll(), 300);
+}
+
+function podcastPlaySection(idx) {
+  if (!currentPodcast) return;
+  const script = PODCAST_SCRIPTS[currentPodcast.id];
+  if (!script || idx >= script.length) return;
+
+  currentSectionIdx = idx;
+
+  // Highlight
+  document.querySelectorAll('.podcast-section.playing').forEach(s => s.classList.remove('playing'));
+  const el = document.getElementById('ps-' + idx);
+  if (el) el.classList.add('playing');
+
+  const section = script[idx];
+  if (section.type === 'korean') {
+    KoreanTTS.speak(section.text, podcastSpeed);
+    // Estimate duration
+    const duration = Math.max(1500, section.text.length * 120 / podcastSpeed);
+    if (podcastPlaying && podcastAutoAdvance) {
+      clearTimeout(podcastTimer);
+      podcastTimer = setTimeout(() => podcastAdvance(), duration);
+    }
+  } else if (section.type === 'narration' && podcastPlaying && podcastAutoAdvance) {
+    // For narration, just pause briefly
+    const duration = Math.max(2000, section.text.length * 50 / podcastSpeed);
+    clearTimeout(podcastTimer);
+    podcastTimer = setTimeout(() => podcastAdvance(), duration);
+  } else if (podcastPlaying && podcastAutoAdvance) {
+    clearTimeout(podcastTimer);
+    podcastTimer = setTimeout(() => podcastAdvance(), 2000 / podcastSpeed);
+  }
+
+  updatePodcastProgress();
+}
+
+function podcastAdvance() {
+  if (!currentPodcast) return;
+  const script = PODCAST_SCRIPTS[currentPodcast.id];
+  if (!script) return;
+
+  currentSectionIdx++;
+  if (currentSectionIdx >= script.length) {
+    stopPodcastPlayback();
+    toast('播客播放完毕 🎉');
+    return;
+  }
+  podcastPlaySection(currentSectionIdx);
+}
+
+function podcastPlayAll() {
+  if (!currentPodcast) return;
+  stopPodcastPlayback();
+  podcastPlaying = true;
+  podcastAutoAdvance = true;
+  currentSectionIdx = 0;
+
+  const btn = document.getElementById('ppPlayBtn');
+  btn.textContent = '⏸';
+  btn.classList.add('playing');
+
+  podcastPlaySection(0);
+}
+
+function podcastTogglePlay() {
+  if (podcastPlaying) {
+    stopPodcastPlayback();
+  } else {
+    podcastPlayAll();
+  }
+}
+
+function stopPodcastPlayback() {
+  KoreanTTS.stop();
+  podcastPlaying = false;
+  podcastAutoAdvance = false;
+  if (podcastTimer) { clearTimeout(podcastTimer); podcastTimer = null; }
+
+  const btn = document.getElementById('ppPlayBtn');
+  if (btn) { btn.textContent = '▶'; btn.classList.remove('playing'); }
+
+  document.querySelectorAll('.podcast-section.playing').forEach(s => s.classList.remove('playing'));
+}
+
+function podcastSkip(seconds) {
+  // For TTS we can't truly skip, so approximate by adjusting section index
+  if (!currentPodcast) return;
+  KoreanTTS.stop();
+  if (podcastTimer) clearTimeout(podcastTimer);
+
+  const script = PODCAST_SCRIPTS[currentPodcast.id];
+  if (!script) return;
+
+  if (seconds > 0) {
+    currentSectionIdx = Math.min(script.length - 1, currentSectionIdx + 1);
+  } else {
+    currentSectionIdx = Math.max(0, currentSectionIdx - 1);
+  }
+
+  if (podcastPlaying) {
+    podcastPlaySection(currentSectionIdx);
+  } else {
+    document.querySelectorAll('.podcast-section.playing').forEach(s => s.classList.remove('playing'));
+    const el = document.getElementById('ps-' + currentSectionIdx);
+    if (el) el.classList.add('playing');
+    updatePodcastProgress();
+  }
+}
+
+function podcastSetSpeed(speed) {
+  podcastSpeed = speed;
+  document.querySelectorAll('.pp-speed-btn').forEach(b => b.classList.remove('active'));
+  const btns = document.querySelectorAll('.pp-speed-btn');
+  btns.forEach(b => {
+    if (parseFloat(b.textContent) === speed) b.classList.add('active');
+  });
+  toast('播放速度: ' + speed + 'x');
+}
+
+function updatePodcastProgress() {
+  if (!currentPodcast) return;
+  const script = PODCAST_SCRIPTS[currentPodcast.id];
+  if (!script) return;
+  const pct = script.length > 0 ? Math.round(currentSectionIdx / script.length * 100) : 0;
+  document.getElementById('ppProgressFill').style.width = pct + '%';
+}
+
+console.log('Pages: home | courses | course-detail | lesson | quiz | quiz-result | voice | flashcard | daily | achievements | profile | leaderboard | chat | podcast');
 </script>
 </body>
 </html>

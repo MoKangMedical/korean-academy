@@ -1,6 +1,6 @@
 # Korean Academy — Codex 接手文档
 
-> **双端架构：GitHub Pages 前端 + 东京服务器 FastAPI 后端**
+> **双端架构：GitHub Pages/新加坡 Nginx 前端 + 新加坡 FastAPI 代理 + 东京 FastAPI 上游**
 
 ---
 
@@ -10,8 +10,8 @@
 |------|------|
 | **产品名** | 文文的韩语老师 |
 | **GitHub Pages** | https://mokangmedical.github.io/korean-academy/ |
-| **后端域名** | https://eterna-niannian.cloud/korean/ |
-| **后端API** | https://eterna-niannian.cloud/korean-api |
+| **主域名** | https://koreanacademy.cn/ |
+| **后端API** | https://koreanacademy.cn/korean-api |
 | **微信小程序** | 本仓库 `miniprogram/` (AppID: wx3bfed43762c89c86) |
 
 ---
@@ -39,14 +39,23 @@
 
 | 类型 | 域名 |
 |------|------|
-| request合法域名 | `https://eterna-niannian.cloud` |
-| uploadFile合法域名 | `https://eterna-niannian.cloud` |
-| downloadFile合法域名 | `https://eterna-niannian.cloud` |
+| request合法域名 | `https://koreanacademy.cn` |
+| uploadFile合法域名 | `https://koreanacademy.cn` |
+| downloadFile合法域名 | `https://koreanacademy.cn` |
 
-小程序端复用 `https://eterna-niannian.cloud/korean-api`，录音参数统一为 `24000Hz / mono / 48kbps`。
+小程序端复用 `https://koreanacademy.cn/korean-api`，录音参数统一为 `24000Hz / mono / 48kbps`。
 
-### 后端: 东京服务器
-**IP:** 43.134.3.158 · **SSH:** root@43.134.3.158（SSH Key认证）
+### 后端: 新加坡 API 代理 + 东京上游
+**公网入口:** `https://koreanacademy.cn/korean-api`
+**新加坡服务器:** `43.128.114.201`
+**代理路径:** `/opt/korean-academy-proxy/backend/`
+**代理服务:** `korean-academy-proxy.service` (systemd, `127.0.0.1:8104`)
+**上游:** `https://eterna-niannian.cloud/korean-api`
+
+普通 API 由代理透传到东京上游；`/tts` 和 `/tts/lesson/*` 音频会经新加坡代理用 ffmpeg 统一为 `MP3 / 24000Hz / mono / 48kbps / loudnorm` 后返回。
+
+### 上游: 东京服务器
+**IP:** 43.134.3.158
 **路径:** `/opt/korean-academy/backend/`
 **服务:** `korean-academy.service` (systemd, port 8104)
 
@@ -108,7 +117,7 @@
 
 | 改动 | 文件 | 效果 |
 |------|------|------|
-| API_BASE远程化 | `js/api.js` | `/korean-api` → `https://eterna-niannian.cloud/korean-api` |
+| API_BASE远程化 | `js/api.js` | `/korean-api` → `https://koreanacademy.cn/korean-api` |
 | KoreanTTS对象 | `index.html` | 26处调用点全部可用（词汇/语法/闪卡/播客） |
 | 课程音频播放器 | `index.html` | 每课顶部音频栏 `🎧 课程音频 → [▶ 播放]` |
 | showPage修复 | `index.html` | `style.display` 确保页面正确隐藏 |
@@ -130,7 +139,7 @@
 
 **脚本位置：**
 - 本地: `/root/korean-academy-web/scripts/gen_course_audio_v3.py`
-- 服务器: `/root/scripts/gen_course_audio_v3.py` (43.134.3.158)
+- 东京上游: `/root/scripts/gen_course_audio_v3.py` (43.134.3.158)
 
 **运行方式：**
 ```bash
@@ -174,13 +183,14 @@ curl -sk 'https://mokangmedical.github.io/korean-academy/' | grep -c 'playLesson
 curl -sk 'https://mokangmedical.github.io/korean-academy/' | grep -c 'fonts.googleapis'  # 必须=0
 
 # 后端验证
-curl -sk https://eterna-niannian.cloud/korean-api/health
-curl -sk https://eterna-niannian.cloud/korean-api/courses | python3 -c "import sys,json; print(len(json.load(sys.stdin)),'courses')"
-curl -skI https://eterna-niannian.cloud/korean-api/tts/lesson/1 | grep content-type  # audio/mpeg
+curl -sk https://koreanacademy.cn/korean-api/health
+curl -sk https://koreanacademy.cn/korean-api/courses | python3 -c "import sys,json; print(len(json.load(sys.stdin)),'courses')"
+curl -skI https://koreanacademy.cn/korean-api/tts/lesson/1 | grep content-type  # audio/mpeg
 
 # 服务器验证
-ssh root@43.134.3.158 'systemctl status korean-academy --no-pager | head -5'
-ssh root@43.134.3.158 'ls /opt/korean-academy/backend/audio_cache/lesson_*.mp3 | wc -l'  # ≥500
+ssh ubuntu@43.128.114.201 'systemctl status korean-academy-proxy --no-pager | head -5'
+curl -skL -o /tmp/lesson1.mp3 https://koreanacademy.cn/korean-api/tts/lesson/1
+ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,sample_rate,channels,bit_rate -of default=nw=1 /tmp/lesson1.mp3
 ```
 
 ---

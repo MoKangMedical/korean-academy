@@ -4,7 +4,7 @@
 // API_BASE proxies to FastAPI backend on port 8104
 // ============================================================
 
-const API_BASE = 'https://eterna-niannian.cloud/korean-api';
+const API_BASE = 'https://koreanacademy.cn/korean-api';
 
 const AUDIO_QUALITY = {
   sampleRate: 24000,

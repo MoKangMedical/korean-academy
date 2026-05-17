@@ -38,10 +38,10 @@ open index.html
 https://mokangmedical.github.io/korean-academy/
 ```
 
-前端直接调用东京后端：
+前端直接调用新域名后端代理：
 
 ```text
-https://eterna-niannian.cloud/korean-api
+https://koreanacademy.cn/korean-api
 ```
 
 ## 📱 微信小程序
@@ -56,9 +56,9 @@ AppID: wx3bfed43762c89c86
 微信公众平台需要配置服务器域名：
 
 ```text
-request合法域名: https://eterna-niannian.cloud
-uploadFile合法域名: https://eterna-niannian.cloud
-downloadFile合法域名: https://eterna-niannian.cloud
+request合法域名: https://koreanacademy.cn
+uploadFile合法域名: https://koreanacademy.cn
+downloadFile合法域名: https://koreanacademy.cn
 ```
 
 当前小程序已包含：首页、课程、课时音频、发音练习、个人页。

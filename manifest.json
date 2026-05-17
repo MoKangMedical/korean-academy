@@ -1,0 +1,13 @@
+{
+  "name": "文文的韩语老师",
+  "short_name": "韩语老师",
+  "description": "零基础到流利的韩语学习助手",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#09090B",
+  "theme_color": "#E2B64F",
+  "lang": "zh-CN",
+  "orientation": "portrait-primary",
+  "icons": []
+}

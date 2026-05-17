@@ -596,3 +596,10 @@ function navigate(page, params = {}) {
   app.dataset.params = JSON.stringify(params);
   window.dispatchEvent(new CustomEvent('ka-navigate', { detail: { page, params } }));
 }
+
+// Expose the shared API objects for inline handlers and browser QA tools.
+window.API_BASE = API_BASE;
+window.api = api;
+window.KoreanTTS = KoreanTTS;
+window.VoiceRecorder = VoiceRecorder;
+window.navigate = navigate;

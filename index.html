@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>文文的韩语老师</title>
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:,">
 <link rel="stylesheet" href="css/style.css?v=12">
 <script>
 // SW disabled — always load fresh from server
@@ -447,7 +448,7 @@ console.log('Korean Academy v2 — no service worker');
 
 </div><!-- /#app -->
 
-<script src="js/api.js?v=11"></script>
+<script src="js/api.js?v=12"></script>
 <script src="js/songs.js?v=11"></script>
 <script>
 // ═══════════════════════════════════════════════════
@@ -596,35 +597,6 @@ function showPage(page) {
   if (el) { el.classList.add('active'); el.style.display = ''; el.scrollTop = 0; }
   window.scrollTo(0, 0);
 }
-
-// ── KoreanTTS — 课程音频播放（标准流水线：DeepSeek口播稿→edge_tts→ffmpeg）──
-var KoreanTTS = {
-  _audio: null,
-  _voiceType: (localStorage.getItem('ka_tts_voice') || 'female'),
-  _speed: parseFloat(localStorage.getItem('ka_tts_speed') || '0.85'),
-  // 播放文本（通过后端TTS实时合成）
-  speak: function(text, speed) {
-    if (!text) return;
-    this.stop();
-    var spd = speed || this._speed;
-    var audio = new Audio(API_BASE + '/tts?text=' + encodeURIComponent(text) + '&lang=ko&speed=' + spd + '&voice=' + this._voiceType);
-    this._audio = audio;
-    audio.play().catch(function() {});
-  },
-  speakWord: function(korean, rom) { this.speak(korean, 0.7); },
-  speakSlow: function(text) { this.speak(text, 0.5); },
-  stop: function() {
-    if (this._audio) { try { this._audio.pause(); this._audio = null; } catch(e) {} }
-  },
-  setVoiceType: function(type) {
-    this._voiceType = type || 'female';
-    localStorage.setItem('ka_tts_voice', this._voiceType);
-  },
-  setSpeed: function(speed) {
-    this._speed = speed;
-    localStorage.setItem('ka_tts_speed', speed);
-  }
-};
 
 // ── 课程音频播放器（标准流水线规格：24000Hz mono 48kbps）──
 var lessonAudio = null;
@@ -896,7 +868,7 @@ async function openLesson(lessonId, title) {
         <div class="text-xs mb-8" style="color:var(--text-tertiary)">${Math.floor(lesson.duration/60)}分钟</div>
         <div class="lesson-audio-bar" style="background:var(--bg-card);border-radius:12px;padding:12px 16px;margin:12px 0;display:flex;align-items:center;gap:10px;border:1px solid var(--border)">
           <span style="font-size:0.8rem;color:var(--text-secondary)">🎧 课程音频</span>
-          <span style="font-size:0.65rem;color:var(--text-tertiary);flex:1">标准流水线：DeepSeek口播稿→edge_tts YunyangNeural→ffmpeg 24kHz mono 48kbps</span>
+          <span style="font-size:0.65rem;color:var(--text-tertiary);flex:1">本课讲解音频已预生成，适合跟读和复习</span>
           <button class="btn btn-sm btn-primary" id="btnLessonAudio" onclick="playLessonAudio(${lessonId})" style="flex-shrink:0">▶ 播放课程音频</button>
         </div>
         <div class="lesson-content">${renderMarkdown(lesson.content || '', lessonId)}${makePronDiag(lessonId, lesson.title)}</div>

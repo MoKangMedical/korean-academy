@@ -16,6 +16,8 @@ Korean Academy — 课程音频生成流水线 v3.0
   python3 gen_course_audio_v3.py --dry-run           # 预览将要生成的内容
   python3 gen_course_audio_v3.py --skip-existing     # 跳过已有文件（默认）
   python3 gen_course_audio_v3.py --force             # 强制重新生成全部
+  python3 gen_course_audio_v3.py --normalize-existing # 只统一已有MP3规格，不调用DeepSeek/TTS
+  python3 gen_course_audio_v3.py --verify-all         # 检查所有lesson_*.mp3规格
 """
 
 import os
@@ -34,8 +36,19 @@ from pathlib import Path
 # 配置
 # ═══════════════════════════════════════════════
 
-DB_PATH = "/opt/korean-academy/backend/korean_academy.db"
-AUDIO_DIR = "/opt/korean-academy/backend/audio_cache"
+DB_PATH = os.environ.get("KOREAN_ACADEMY_DB", "/opt/korean-academy/backend/korean_academy.db")
+AUDIO_DIR = os.environ.get("KOREAN_ACADEMY_AUDIO_DIR", "/opt/korean-academy/backend/audio_cache")
+
+AUDIO_SAMPLE_RATE = "24000"
+AUDIO_CHANNELS = "1"
+AUDIO_BITRATE = "48k"
+AUDIO_LOUDNORM = "loudnorm=I=-16:TP=-1.5:LRA=9"
+AUDIO_SPEC = {
+    "codec_name": "mp3",
+    "sample_rate": AUDIO_SAMPLE_RATE,
+    "channels": AUDIO_CHANNELS,
+    "bit_rate": "48000",
+}
 
 # DeepSeek API
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
@@ -48,10 +61,10 @@ TTS_PITCH = "-2Hz"                 # 低音调，避免机器急促感
 
 # ffmpeg 参数（按用户指定标准）
 FFMPEG_ARGS = [
-    "-ar", "24000",           # 采样率 24000Hz
-    "-ac", "1",               # 单声道
-    "-b:a", "48k",            # 48kbps（网页和小程序友好）
-    "-af", "loudnorm=I=-16:TP=-1.5:LRA=9",  # 响度标准化
+    "-ar", AUDIO_SAMPLE_RATE, # 采样率 24000Hz
+    "-ac", AUDIO_CHANNELS,    # 单声道
+    "-b:a", AUDIO_BITRATE,    # 48kbps（网页和小程序友好）
+    "-af", AUDIO_LOUDNORM,    # 响度标准化
     "-f", "mp3",
 ]
 
@@ -141,6 +154,92 @@ def post_process_audio(input_path: str, output_path: str) -> bool:
     return result.returncode == 0 and os.path.getsize(output_path) > 500
 
 
+def probe_audio(path: str) -> dict:
+    """Return core audio stream metadata via ffprobe."""
+    result = subprocess.run(
+        [
+            "ffprobe", "-v", "quiet",
+            "-show_entries", "stream=codec_name,sample_rate,channels,bit_rate",
+            "-of", "json",
+            path,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    if result.returncode != 0:
+        return {"error": result.stderr.strip() or "ffprobe failed"}
+    data = json.loads(result.stdout or "{}")
+    streams = data.get("streams") or []
+    return streams[0] if streams else {"error": "no audio stream"}
+
+
+def is_standard_audio(path: str) -> bool:
+    """True when an MP3 already matches the course/pronunciation standard."""
+    meta = probe_audio(path)
+    if meta.get("error"):
+        return False
+    return (
+        meta.get("codec_name") == AUDIO_SPEC["codec_name"]
+        and str(meta.get("sample_rate")) == AUDIO_SPEC["sample_rate"]
+        and str(meta.get("channels")) == AUDIO_SPEC["channels"]
+        and 45000 <= int(meta.get("bit_rate") or 0) <= 52000
+    )
+
+
+def normalize_audio_file(path: Path, force: bool = False) -> dict:
+    """Normalize an existing MP3 in place using an atomic temporary file."""
+    before = probe_audio(str(path))
+    if not force and is_standard_audio(str(path)):
+        return {"status": "skipped", "file": str(path), "before": before, "reason": "already standard"}
+
+    tmp_fd, tmp_name = tempfile.mkstemp(prefix=f".{path.stem}.", suffix=".mp3", dir=str(path.parent))
+    os.close(tmp_fd)
+    try:
+        ok = post_process_audio(str(path), tmp_name)
+        if not ok:
+            return {"status": "failed", "file": str(path), "before": before, "error": "ffmpeg failed"}
+        os.replace(tmp_name, path)
+        after = probe_audio(str(path))
+        if not is_standard_audio(str(path)):
+            return {"status": "failed", "file": str(path), "before": before, "after": after, "error": "output spec mismatch"}
+        return {"status": "success", "file": str(path), "before": before, "after": after}
+    finally:
+        if os.path.exists(tmp_name):
+            os.unlink(tmp_name)
+
+
+def normalize_existing_audio(audio_dir: str, force: bool = False, limit: int = 0) -> dict:
+    """Normalize existing lesson MP3 files without regenerating scripts or TTS."""
+    files = sorted(Path(audio_dir).glob("lesson_*.mp3"))
+    if limit:
+        files = files[:limit]
+    results = {"success": 0, "skipped": 0, "failed": 0, "details": []}
+    print(f"🔊 标准规格: mp3 {AUDIO_SAMPLE_RATE}Hz mono {AUDIO_BITRATE}, {AUDIO_LOUDNORM}")
+    print(f"📁 待检查文件: {len(files)}")
+    for path in files:
+        result = normalize_audio_file(path, force=force)
+        results[result["status"]] = results.get(result["status"], 0) + 1
+        results["details"].append(result)
+        print(f"  {result['status']}: {path.name}")
+    return results
+
+
+def verify_existing_audio(audio_dir: str) -> bool:
+    """Verify every lesson MP3 against the shared audio standard."""
+    files = sorted(Path(audio_dir).glob("lesson_*.mp3"))
+    print(f"🔍 验证 {len(files)} 个课程音频文件")
+    ok = True
+    for path in files:
+        meta = probe_audio(str(path))
+        standard = is_standard_audio(str(path))
+        status = "OK" if standard else "MISMATCH"
+        if not standard:
+            ok = False
+        print(f"  {status}: {path.name}: {meta}")
+    return ok
+
+
 # ═══════════════════════════════════════════════
 # 主流程：生成单课音频
 # ═══════════════════════════════════════════════
@@ -211,21 +310,33 @@ async def main():
     parser.add_argument("--dry-run", action="store_true", help="预览模式")
     parser.add_argument("--force", action="store_true", help="强制重新生成")
     parser.add_argument("--limit", type=int, default=0, help="限制生成数量")
+    parser.add_argument("--normalize-existing", action="store_true", help="只统一已有lesson_*.mp3规格，不调用DeepSeek/TTS")
+    parser.add_argument("--verify-all", action="store_true", help="验证所有lesson_*.mp3是否符合统一规格")
     args = parser.parse_args()
-    
+
+    os.makedirs(AUDIO_DIR, exist_ok=True)
+    if args.normalize_existing:
+        results = normalize_existing_audio(AUDIO_DIR, force=args.force, limit=args.limit)
+        print(f"\n✅ 归一化: {results.get('success', 0)}")
+        print(f"⏭ 跳过: {results.get('skipped', 0)}")
+        print(f"❌ 失败: {results.get('failed', 0)}")
+        sys.exit(0 if results.get("failed", 0) == 0 else 1)
+
+    if args.verify_all:
+        sys.exit(0 if verify_existing_audio(AUDIO_DIR) else 1)
+
     # 检查依赖
     if not DEEPSEEK_API_KEY:
         print("❌ 请设置 DEEPSEEK_API_KEY 环境变量")
         sys.exit(1)
-    
+
     try:
         import edge_tts
     except ImportError:
         print("❌ 请安装 edge_tts: pip install edge-tts")
         sys.exit(1)
-    
+
     # 连接数据库
-    os.makedirs(AUDIO_DIR, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()

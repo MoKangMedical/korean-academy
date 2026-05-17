@@ -6,6 +6,13 @@
 
 const API_BASE = 'https://eterna-niannian.cloud/korean-api';
 
+const AUDIO_QUALITY = {
+  sampleRate: 24000,
+  channelCount: 1,
+  bitRate: 48000,
+  loudness: 'I=-16:TP=-1.5:LRA=9'
+};
+
 // ─── Core request helper ────────────────────────────────────
 const api = {
   /**
@@ -104,8 +111,13 @@ const api = {
    */
   async uploadPronunciation(audioBlob, targetText) {
     const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.webm');
+    const ext = VoiceRecorder.getExtension(audioBlob.type);
+    formData.append('audio', audioBlob, `recording.${ext}`);
     formData.append('target_text', targetText);
+    formData.append('sample_rate', String(AUDIO_QUALITY.sampleRate));
+    formData.append('channel_count', String(AUDIO_QUALITY.channelCount));
+    formData.append('bit_rate', String(AUDIO_QUALITY.bitRate));
+    formData.append('loudness', AUDIO_QUALITY.loudness);
     return this.request('/pronunciation/analyze', {
       method: 'POST',
       data: formData,
@@ -352,6 +364,7 @@ const VoiceRecorder = {
   COLOR_GRADIENT_START: '#E2B64F',
   COLOR_GRADIENT_END: '#1a1a2e',
   COLOR_BG: '#0f0f1a',
+  QUALITY: AUDIO_QUALITY,
 
   // ── public API ───────────────────────────────────────────
 
@@ -360,7 +373,7 @@ const VoiceRecorder = {
    *
    * @param {HTMLCanvasElement} canvas   — canvas element for waveform
    * @param {Object}           [opts]
-   * @param {string}           [opts.mimeType='audio/webm'] — preferred MIME type
+   * @param {string}           [opts.mimeType='audio/webm;codecs=opus'] — preferred MIME type
    * @param {Function}         [opts.onStop]   — callback(blob) when recording stops
    * @param {Function}         [opts.onError]  — callback(err) on error
    * @returns {Promise<void>}
@@ -375,7 +388,15 @@ const VoiceRecorder = {
     this._chunks = [];
 
     try {
-      this._stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this._stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: { ideal: AUDIO_QUALITY.channelCount },
+          sampleRate: { ideal: AUDIO_QUALITY.sampleRate },
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      });
 
       // AudioContext for waveform analysis
       this._audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -386,10 +407,10 @@ const VoiceRecorder = {
       this._source.connect(this._analyser);
 
       // MediaRecorder
-      const mimeType = this._getSupportedMime(opts.mimeType || 'audio/webm');
+      const mimeType = this._getSupportedMime(opts.mimeType || 'audio/webm;codecs=opus');
       this._mediaRecorder = new MediaRecorder(this._stream, {
         mimeType,
-        audioBitsPerSecond: 128000
+        audioBitsPerSecond: AUDIO_QUALITY.bitRate
       });
 
       this._mediaRecorder.ondataavailable = (e) => {
@@ -479,11 +500,17 @@ const VoiceRecorder = {
   },
 
   _getSupportedMime(preferred) {
-    const candidates = [preferred, 'audio/webm', 'audio/mp4', 'audio/ogg; codecs=opus'];
+    const candidates = [preferred, 'audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
     for (const m of candidates) {
       if (MediaRecorder.isTypeSupported(m)) return m;
     }
     return 'audio/webm'; // fallback (some browsers)
+  },
+
+  getExtension(mimeType = '') {
+    if (mimeType.includes('mp4')) return 'm4a';
+    if (mimeType.includes('ogg')) return 'ogg';
+    return 'webm';
   },
 
   _cleanup() {
@@ -599,6 +626,7 @@ function navigate(page, params = {}) {
 
 // Expose the shared API objects for inline handlers and browser QA tools.
 window.API_BASE = API_BASE;
+window.AUDIO_QUALITY = AUDIO_QUALITY;
 window.api = api;
 window.KoreanTTS = KoreanTTS;
 window.VoiceRecorder = VoiceRecorder;

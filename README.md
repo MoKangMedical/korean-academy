@@ -30,6 +30,22 @@
 open index.html
 ```
 
+## 🔊 音频质量统一
+
+统一规格：MP3, 24000Hz, mono, 48kbps, `loudnorm=I=-16:TP=-1.5:LRA=9`。
+
+```bash
+# 在东京后端统一已有课程音频，不重新调用 DeepSeek/TTS
+python3 scripts/gen_course_audio_v3.py --normalize-existing --force
+python3 scripts/gen_course_audio_v3.py --verify-all
+
+# 统一其他发音/上传/参考音频目录
+python3 scripts/normalize_audio_quality.py /opt/korean-academy/backend/pronunciation_uploads --pattern '*' --force
+python3 scripts/normalize_audio_quality.py /opt/korean-academy/backend/pronunciation_uploads --pattern '*.mp3' --verify
+```
+
+前端录音会请求 `24000Hz / mono / 48kbps`，并随上传附带 `sample_rate/channel_count/bit_rate/loudness` 元数据；最终落盘仍建议后端用上述脚本二次归一化。
+
 ## 🏗️ 架构
 
 ```

@@ -30,6 +30,39 @@
 open index.html
 ```
 
+## 🌐 GitHub Pages
+
+线上页面已由 `master` 分支自动部署：
+
+```text
+https://mokangmedical.github.io/korean-academy/
+```
+
+前端直接调用东京后端：
+
+```text
+https://eterna-niannian.cloud/korean-api
+```
+
+## 📱 微信小程序
+
+小程序工程在 `miniprogram/`，用微信开发者工具导入该目录即可。
+
+```text
+AppID: wx3bfed43762c89c86
+项目目录: miniprogram/
+```
+
+微信公众平台需要配置服务器域名：
+
+```text
+request合法域名: https://eterna-niannian.cloud
+uploadFile合法域名: https://eterna-niannian.cloud
+downloadFile合法域名: https://eterna-niannian.cloud
+```
+
+当前小程序已包含：首页、课程、课时音频、发音练习、个人页。
+
 ## 🔊 音频质量统一
 
 统一规格：MP3, 24000Hz, mono, 48kbps, `loudnorm=I=-16:TP=-1.5:LRA=9`。

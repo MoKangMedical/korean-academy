@@ -1,0 +1,15 @@
+{
+  "appid": "wx3bfed43762c89c86",
+  "compileType": "miniprogram",
+  "libVersion": "3.8.8",
+  "projectname": "korean-academy-miniapp",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true
+  },
+  "condition": {},
+  "srcMiniprogramRoot": "./"
+}

@@ -1,0 +1,14 @@
+.target {
+  margin-top: 22rpx;
+  font-size: 40rpx;
+  line-height: 1.45;
+}
+
+.button {
+  margin-bottom: 18rpx;
+}
+
+.record {
+  background: #EF4444;
+  color: #FFFFFF;
+}

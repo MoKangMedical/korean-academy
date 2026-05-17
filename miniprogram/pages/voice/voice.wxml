@@ -1,0 +1,28 @@
+<view class="page">
+  <view class="card gold-card">
+    <view class="card-title">发音练习</view>
+    <view class="card-subtitle">录音规格：24kHz · mono · 48kbps</view>
+    <view class="target korean">{{targetText || '请选择练习词汇'}}</view>
+  </view>
+
+  <view class="button secondary" bindtap="playStandard">听标准发音</view>
+  <view class="button record" bindtap="toggleRecord">{{recording ? '停止录音' : '开始录音'}}</view>
+  <view class="button" bindtap="submitVoice">提交评分</view>
+
+  <view wx:if="{{result}}" class="card">
+    <view class="card-title">评分 {{result.score || '-'}}</view>
+    <view class="card-subtitle">{{result.feedback || '已提交评分'}}</view>
+  </view>
+
+  <view class="section-title">练习词汇</view>
+  <block wx:if="{{vocab.length}}">
+    <view class="card row" wx:for="{{vocab}}" wx:key="id" bindtap="chooseTarget" data-korean="{{item.korean}}" data-sentence="{{item.example_ko || item.korean}}">
+      <view class="badge">音</view>
+      <view class="grow">
+        <view class="card-title korean">{{item.korean}}</view>
+        <view class="card-subtitle">{{item.chinese}} · {{item.example_ko}}</view>
+      </view>
+    </view>
+  </block>
+  <view wx:else class="empty">词汇加载中...</view>
+</view>

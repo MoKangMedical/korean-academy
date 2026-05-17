@@ -1,0 +1,48 @@
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">안녕하세요</view>
+    <view class="title">文文的韩语老师</view>
+    <view class="subtitle">한국어를 함께 배워요</view>
+  </view>
+
+  <view class="card gold-card">
+    <view class="row">
+      <view class="badge">★</view>
+      <view class="grow">
+        <view class="card-title">{{streak.current_streak || 0}} 天连续学习</view>
+        <view class="card-subtitle">XP {{streak.total_xp || 0}} · 今日继续保持</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-title">推荐课程</view>
+  <block wx:if="{{courses.length}}">
+    <view class="card row" wx:for="{{courses}}" wx:key="id" bindtap="openCourse" data-id="{{item.id}}">
+      <view class="badge">K</view>
+      <view class="grow">
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-subtitle">{{item.subtitle}} · {{item.unit_count}}单元</view>
+      </view>
+      <view class="arrow">›</view>
+    </view>
+  </block>
+  <view wx:else class="empty">课程加载中...</view>
+
+  <view class="section-title">快捷入口</view>
+  <view class="card row" bindtap="goCourses">
+    <view class="badge">课</view>
+    <view class="grow">
+      <view class="card-title">系统课程</view>
+      <view class="card-subtitle">6门课 · 500课时 · 已接入课程音频</view>
+    </view>
+    <view class="arrow">›</view>
+  </view>
+  <view class="card row" bindtap="goVoice">
+    <view class="badge">音</view>
+    <view class="grow">
+      <view class="card-title">发音练习</view>
+      <view class="card-subtitle">录音评分 · 24kHz mono 48kbps</view>
+    </view>
+    <view class="arrow">›</view>
+  </view>
+</view>

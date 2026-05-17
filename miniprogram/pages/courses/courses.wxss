@@ -1,0 +1,22 @@
+.lesson-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-height: 76rpx;
+  border-top: 1rpx solid #27272A;
+  color: #A1A1AA;
+}
+
+.lesson-check {
+  color: #22C55E;
+}
+
+.lesson-title {
+  flex: 1;
+  color: #FAFAFA;
+}
+
+.lesson-time {
+  color: #71717A;
+  font-size: 22rpx;
+}

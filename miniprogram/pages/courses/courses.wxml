@@ -1,0 +1,33 @@
+<view class="page">
+  <view class="section-title">课程体系</view>
+
+  <block wx:if="{{!selectedCourse}}">
+    <view class="card row" wx:for="{{courses}}" wx:key="id" bindtap="openCourse" data-id="{{item.id}}">
+      <view class="badge">Lv{{item.level}}</view>
+      <view class="grow">
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-subtitle">{{item.description}}</view>
+        <view class="meta">{{item.unit_count}}单元 · {{item.subtitle}}</view>
+      </view>
+      <view class="arrow">›</view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="card gold-card">
+      <view class="card-title">{{selectedCourse.title}}</view>
+      <view class="card-subtitle">{{selectedCourse.description}}</view>
+      <view class="meta">{{selectedCourse.unit_count}}单元 · Lv{{selectedCourse.level}}</view>
+    </view>
+
+    <view class="card" wx:for="{{selectedCourse.units}}" wx:key="id">
+      <view class="card-title">{{item.title}}</view>
+      <view class="card-subtitle">{{item.description}}</view>
+      <view class="lesson-row" wx:for="{{item.lessons}}" wx:for-item="lesson" wx:key="id" bindtap="openLesson" data-id="{{lesson.id}}" data-title="{{lesson.title}}">
+        <text class="lesson-check">✓</text>
+        <text class="lesson-title">{{lesson.title}}</text>
+        <text class="lesson-time">10分</text>
+      </view>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,50 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/courses/courses",
+    "pages/lesson/lesson",
+    "pages/voice/voice",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "navigationBarTitleText": "文文的韩语老师",
+    "navigationBarBackgroundColor": "#09090B",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#09090B",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#71717A",
+    "selectedColor": "#E2B64F",
+    "backgroundColor": "#09090B",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "学习"
+      },
+      {
+        "pagePath": "pages/courses/courses",
+        "text": "课程"
+      },
+      {
+        "pagePath": "pages/voice/voice",
+        "text": "发音"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "requiredPrivateInfos": [
+    "getRecorderManager"
+  ],
+  "permission": {
+    "scope.record": {
+      "desc": "用于韩语发音练习录音评分"
+    }
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,21 @@
+.profile-avatar {
+  width: 128rpx;
+  height: 128rpx;
+  margin: 20rpx auto;
+  border: 2rpx solid rgba(226, 182, 79, 0.45);
+  border-radius: 64rpx;
+  color: #E2B64F;
+  background: rgba(226, 182, 79, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 54rpx;
+  font-weight: 800;
+}
+
+.profile-name {
+  color: #F5D98E;
+  font-size: 38rpx;
+  font-weight: 700;
+  text-align: center;
+}

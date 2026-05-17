@@ -12,7 +12,7 @@
 | **GitHub Pages** | https://mokangmedical.github.io/korean-academy/ |
 | **后端域名** | https://eterna-niannian.cloud/korean/ |
 | **后端API** | https://eterna-niannian.cloud/korean-api |
-| **微信小程序** | `/root/korean-academy-miniapp/` (AppID: wx3bfed43762c89c86) |
+| **微信小程序** | 本仓库 `miniprogram/` (AppID: wx3bfed43762c89c86) |
 
 ---
 
@@ -31,6 +31,19 @@
 | `manifest.json` | PWA清单 |
 | `sw.js` | Service Worker（已禁用） |
 | `scripts/gen_course_audio_v3.py` | 音频流水线脚本 |
+| `miniprogram/` | 微信小程序工程（首页/课程/课时音频/发音/我的） |
+
+### 小程序: `miniprogram/`
+
+用微信开发者工具导入 `miniprogram/`。公众平台需配置：
+
+| 类型 | 域名 |
+|------|------|
+| request合法域名 | `https://eterna-niannian.cloud` |
+| uploadFile合法域名 | `https://eterna-niannian.cloud` |
+| downloadFile合法域名 | `https://eterna-niannian.cloud` |
+
+小程序端复用 `https://eterna-niannian.cloud/korean-api`，录音参数统一为 `24000Hz / mono / 48kbps`。
 
 ### 后端: 东京服务器
 **IP:** 43.134.3.158 · **SSH:** root@43.134.3.158（SSH Key认证）

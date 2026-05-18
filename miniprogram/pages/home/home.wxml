@@ -7,7 +7,7 @@
 
   <view class="card gold-card">
     <view class="row">
-      <view class="badge">★</view>
+      <view class="badge">学</view>
       <view class="grow">
         <view class="card-title">{{streak.current_streak || 0}} 天连续学习</view>
         <view class="card-subtitle">XP {{streak.total_xp || 0}} · 今日继续保持</view>

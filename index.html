@@ -6,7 +6,7 @@
 <title>文文的韩语老师</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="css/style.css?v=13">
+<link rel="stylesheet" href="css/style.css?v=14">
 <script>
 // SW disabled — always load fresh from server
 console.log('Korean Academy v2 — no service worker');
@@ -20,10 +20,10 @@ console.log('Korean Academy v2 — no service worker');
 
 <!-- Top Bar -->
 <header class="top-bar" id="topBar">
-  <span class="back-btn" id="backBtn" style="visibility:hidden">&#8249;</span>
+  <span class="back-btn" id="backBtn" style="visibility:hidden">返回</span>
   <h1 id="topTitle">文文的韩语老师</h1>
   <span class="top-action" id="topAction" style="visibility:visible;position:relative" onclick="switchTab('profile')">
-    📝<span class="top-error-badge" id="topErrorBadge" style="display:none">0</span>
+    错题<span class="top-error-badge" id="topErrorBadge" style="display:none">0</span>
   </span>
 </header>
 
@@ -39,7 +39,7 @@ console.log('Korean Academy v2 — no service worker');
   </div>
 
   <div class="streak-bar" id="streakBar">
-    <div class="streak-icon" style="display:flex;align-items:center;justify-content:center;">&#9733;</div>
+    <div class="streak-icon" style="display:flex;align-items:center;justify-content:center;">学</div>
     <div class="streak-info">
       <div class="streak-count" id="streakCount">0</div>
       <div class="streak-label">连续学习天数</div>
@@ -67,23 +67,23 @@ console.log('Korean Academy v2 — no service worker');
 
   <div class="quick-actions">
     <div class="quick-action" onclick="switchTab('daily')">
-      <div class="qa-icon">&#9733;</div>
+      <div class="qa-icon">日</div>
       <div class="qa-title">每日挑战</div>
       <div class="qa-subtitle" id="qaDailyPreview">今日任务</div>
     </div>
     <div class="quick-action" onclick="switchTab('flashcard')">
-      <div class="qa-icon">&#9830;</div>
+      <div class="qa-icon">卡</div>
       <div class="qa-title">闪卡复习</div>
       <div class="qa-subtitle" id="qaFlashcardCount">待复习</div>
       <div class="qa-badge" id="qaFlashcardBadge" style="display:none">0</div>
     </div>
     <div class="quick-action" onclick="switchTab('courses')">
-      <div class="qa-icon">&#9654;</div>
+      <div class="qa-icon">课</div>
       <div class="qa-title">继续学习</div>
       <div class="qa-subtitle" id="qaLastLesson">选择课程</div>
     </div>
     <div class="quick-action" onclick="switchTab('voice')">
-      <div class="qa-icon">&#9679;</div>
+      <div class="qa-icon">音</div>
       <div class="qa-title">发音练习</div>
       <div class="qa-subtitle">录音评分</div>
     </div>
@@ -91,7 +91,7 @@ console.log('Korean Academy v2 — no service worker');
 
   <div class="section-header">
     <span class="section-title">推荐课程</span>
-    <span class="section-link" onclick="switchTab('courses')">全部 &#8250;</span>
+    <span class="section-link" onclick="switchTab('courses')">全部</span>
   </div>
   <div id="homeCourses"></div>
 </section>
@@ -156,7 +156,7 @@ console.log('Korean Academy v2 — no service worker');
   </div>
   
   <div class="flex-center" style="margin:16px 0">
-    <button class="tts-btn" onclick="playTargetAudio()" style="font-size:1rem;padding:8px 16px">&#9654; 听标准发音</button>
+    <button class="tts-btn" onclick="playTargetAudio()" style="font-size:1rem;padding:8px 16px">听标准发音</button>
   </div>
 
   <div class="flex-center" style="margin:20px 0">
@@ -193,7 +193,7 @@ console.log('Korean Academy v2 — no service worker');
   <div class="flashcard-container" id="flashcardContainer">
     <div class="fc-header">
       <span class="fc-progress" id="fcProgress">-</span>
-      <button class="fc-skip-btn" onclick="skipCard()">跳过 ⏭</button>
+      <button class="fc-skip-btn" onclick="skipCard()">跳过</button>
     </div>
     <div class="flashcard" id="flashcard" onclick="flipCard()">
       <div class="fc-face fc-front">
@@ -205,7 +205,7 @@ console.log('Korean Academy v2 — no service worker');
       <div class="fc-face fc-back">
         <div class="fc-chinese" id="fcChinese"></div>
         <div class="fc-example" id="fcExample"></div>
-        <button class="tts-btn mt-8" onclick="event.stopPropagation();playFcAudio()">&#9654; 听发音</button>
+        <button class="tts-btn mt-8" onclick="event.stopPropagation();playFcAudio()">听发音</button>
       </div>
     </div>
   </div>
@@ -220,7 +220,7 @@ console.log('Korean Academy v2 — no service worker');
   <div class="fc-history" id="fcHistory" style="display:none"></div>
 
   <div class="empty-state" id="flashcardEmpty" style="display:none">
-    <div class="empty-icon">&#9830;</div>
+    <div class="empty-icon">空</div>
     <div class="empty-text">暂无待复习闪卡</div>
     <div style="font-size:0.75rem;color:var(--text-dim)">学习词汇后会自动生成复习卡片</div>
   </div>
@@ -257,7 +257,7 @@ console.log('Korean Academy v2 — no service worker');
 <section class="page" id="page-achievements">
   <div class="card">
     <div style="display:flex;align-items:center;gap:12px">
-      <div style="font-size:2rem;opacity:0.6">&#9733;</div>
+      <div style="font-size:2rem;opacity:0.6">成</div>
       <div>
         <div style="font-size:1.25rem;font-weight:700;color:var(--gold)" id="achXPTotal">0 XP</div>
         <div style="font-size:0.75rem;color:var(--text-tertiary)">总经验值</div>
@@ -270,7 +270,7 @@ console.log('Korean Academy v2 — no service worker');
 <!-- ==================== LEADERBOARD ==================== -->
 <section class="page" id="page-leaderboard">
   <div class="leaderboard-header">
-    <div class="lb-title">🏆 排行榜</div>
+    <div class="lb-title">排行榜</div>
     <div class="lb-subtitle">Top 10 Learners</div>
   </div>
   <div id="leaderboardList"></div>
@@ -289,17 +289,17 @@ console.log('Korean Academy v2 — no service worker');
     <div class="card-subtitle">选择场景后用韩语开口练习，系统会给出韩语回复和中文理解</div>
   </div>
   <div class="scenario-pills" id="scenarioPills">
-    <span class="scenario-pill active" onclick="switchToScenario('restaurant')">🍽️ 餐厅</span>
-    <span class="scenario-pill" onclick="switchToScenario('meeting')">🤝 见面</span>
-    <span class="scenario-pill" onclick="switchToScenario('travel')">🗺️ 旅行</span>
-    <span class="scenario-pill" onclick="switchToScenario('shopping')">🛍️ 购物</span>
-    <span class="scenario-pill" onclick="switchToScenario('daily')">💬 日常</span>
-    <span class="scenario-pill" onclick="switchToScenario('cafe')">☕ 咖啡厅</span>
+    <span class="scenario-pill active" onclick="switchToScenario('restaurant')">餐厅</span>
+    <span class="scenario-pill" onclick="switchToScenario('meeting')">见面</span>
+    <span class="scenario-pill" onclick="switchToScenario('travel')">旅行</span>
+    <span class="scenario-pill" onclick="switchToScenario('shopping')">购物</span>
+    <span class="scenario-pill" onclick="switchToScenario('daily')">日常</span>
+    <span class="scenario-pill" onclick="switchToScenario('cafe')">咖啡厅</span>
   </div>
 
   <div class="chat-area" id="chatArea">
     <div class="chat-welcome" id="chatWelcome">
-      <div class="cw-icon">💬</div>
+      <div class="cw-icon">AI</div>
       <div class="cw-title">AI 韩语对话练习</div>
       <div class="cw-subtitle">选择一个场景，开始练习韩语对话吧！<br>AI 会作为对话伙伴陪你练习</div>
     </div>
@@ -309,7 +309,7 @@ console.log('Korean Academy v2 — no service worker');
 
   <div class="chat-input-row">
     <input class="chat-input" id="chatInput" placeholder="输入韩语..." onkeydown="if(event.key==='Enter')sendChatMessage()">
-    <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+    <button class="chat-send-btn" onclick="sendChatMessage()">发送</button>
   </div>
 </section>
 
@@ -325,9 +325,9 @@ console.log('Korean Academy v2 — no service worker');
     <div class="pp-title" id="ppTitle">选择播客</div>
     <div class="pp-progress"><div class="pp-progress-fill" id="ppProgressFill" style="width:0%"></div></div>
     <div class="pp-controls">
-      <button class="pp-btn" onclick="podcastSkip(-10)">⏪</button>
-      <button class="pp-btn pp-play" id="ppPlayBtn" onclick="podcastTogglePlay()">▶</button>
-      <button class="pp-btn" onclick="podcastSkip(10)">⏩</button>
+      <button class="pp-btn" onclick="podcastSkip(-10)">上一段</button>
+      <button class="pp-btn pp-play" id="ppPlayBtn" onclick="podcastTogglePlay()">播放</button>
+      <button class="pp-btn" onclick="podcastSkip(10)">下一段</button>
     </div>
     <div class="pp-speed" id="ppSpeed">
       <button class="pp-speed-btn" onclick="podcastSetSpeed(0.75)">0.75x</button>
@@ -377,19 +377,19 @@ console.log('Korean Academy v2 — no service worker');
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border)">
-      <span style="color:var(--text-secondary);font-size:0.875rem">🔊 TTS 语音</span>
+      <span style="color:var(--text-secondary);font-size:0.875rem">TTS 语音</span>
       <div style="display:flex;gap:4px">
-        <button class="btn btn-sm btn-outline" id="btnVoiceFemale" onclick="switchTtsVoice('female')" style="background:rgba(226,182,79,0.15);border-color:var(--border-gold);color:var(--gold)">👩 女声</button>
-        <button class="btn btn-sm btn-outline" id="btnVoiceMale" onclick="switchTtsVoice('male')">👨 男声</button>
+        <button class="btn btn-sm btn-outline" id="btnVoiceFemale" onclick="switchTtsVoice('female')" style="background:rgba(226,182,79,0.15);border-color:var(--border-gold);color:var(--gold)">女声</button>
+        <button class="btn btn-sm btn-outline" id="btnVoiceMale" onclick="switchTtsVoice('male')">男声</button>
       </div>
     </div>
   </div>
 
   <!-- WeChat Login -->
   <div class="card mt-12" id="wxLoginCard">
-    <div class="card-title">🔐 账号绑定</div>
+    <div class="card-title">账号绑定</div>
     <div id="wxLoginArea">
-      <button class="wx-login-btn" onclick="wxLogin()">💚 微信登录</button>
+      <button class="wx-login-btn" onclick="wxLogin()">微信登录</button>
       <div class="text-xs" style="color:var(--text-tertiary);margin-top:8px;text-align:center">登录后可同步学习进度</div>
     </div>
     <div id="wxLoggedInArea" style="display:none">
@@ -404,17 +404,17 @@ console.log('Korean Academy v2 — no service worker');
   <!-- Error Notebook -->
   <div class="card mt-12" id="errorNotebook">
     <div class="error-header">
-      <div class="card-title" style="margin-bottom:0">📝 错题本</div>
+      <div class="card-title" style="margin-bottom:0">错题本</div>
       <span class="error-count" id="errorCount">0题</span>
     </div>
     <div id="errorList"></div>
     <div id="errorEmpty" class="error-empty">
-      <div class="ee-icon">✓</div>
+      <div class="ee-icon">无</div>
       <div style="font-size:0.8125rem">暂无错题，继续保持!</div>
     </div>
   </div>
 
-  <button class="btn btn-outline mt-12" style="width:100%" onclick="switchTab('leaderboard')">🏆 排行榜</button>
+  <button class="btn btn-outline mt-12" style="width:100%" onclick="switchTab('leaderboard')">排行榜</button>
 </section>
 
 </div><!-- /pages-container -->
@@ -422,25 +422,25 @@ console.log('Korean Academy v2 — no service worker');
 <!-- Tab Bar -->
 <nav class="tab-bar seven-items">
   <div class="tab-item active" data-tab="home" onclick="switchTab('home')">
-    <span class="tab-icon">&#9679;</span>学习
+    学习
   </div>
   <div class="tab-item" data-tab="courses" onclick="switchTab('courses')">
-    <span class="tab-icon">&#9776;</span>课程
+    课程
   </div>
   <div class="tab-item" data-tab="chat" onclick="switchTab('chat')">
-    <span class="tab-icon">💬</span>对话
+    对话
   </div>
   <div class="tab-item" data-tab="voice" onclick="switchTab('voice')">
-    <span class="tab-icon">&#9679;</span>发音
+    发音
   </div>
   <div class="tab-item" data-tab="songs" onclick="switchTab('songs')">
-    <span class="tab-icon">&#9835;</span>歌曲
+    歌曲
   </div>
   <div class="tab-item" data-tab="podcast" onclick="switchTab('podcast')">
-    <span class="tab-icon">🎧</span>播客
+    播客
   </div>
   <div class="tab-item" data-tab="profile" onclick="switchTab('profile')">
-    <span class="tab-icon">&#9670;</span>我的
+    我的
   </div>
 </nav>
 
@@ -452,8 +452,8 @@ console.log('Korean Academy v2 — no service worker');
   <div class="wx-modal">
     <div class="wx-modal-title">微信登录</div>
     <div class="wx-modal-subtitle">扫码或授权登录，同步学习进度</div>
-    <button class="wx-login-btn" onclick="wxDoLogin()">💚 一键授权登录</button>
-    <button class="wx-login-btn mock mt-8" onclick="wxMockLogin()" style="margin-top:8px">🔧 模拟登录 (开发测试)</button>
+    <button class="wx-login-btn" onclick="wxDoLogin()">一键授权登录</button>
+    <button class="wx-login-btn mock mt-8" onclick="wxMockLogin()" style="margin-top:8px">模拟登录 (开发测试)</button>
     <div class="wx-modal-close" onclick="wxCloseModal()">取消</div>
   </div>
 </div>
@@ -624,24 +624,24 @@ function playLessonAudio(lessonId) {
   if (!audio || !btn) return;
   if (lessonAudio && !audio.paused) {
     audio.pause();
-    btn.innerHTML = '▶ 播放课程音频';
+    btn.innerHTML = '播放课程音频';
     return;
   }
   // 优先用预生成音频（流水线标准），fallback到TTS实时合成
   audio.src = API_BASE + '/tts/lesson/' + lessonId;
   audio.load();
   audio.play().then(function() {
-    btn.innerHTML = '⏸ 暂停音频';
+    btn.innerHTML = '暂停音频';
     lessonAudio = audio;
   }).catch(function() {
-    btn.innerHTML = '⚠ 音频暂不可用';
+    btn.innerHTML = '音频暂不可用';
   });
   audio.onended = function() {
-    btn.innerHTML = '▶ 播放课程音频';
+    btn.innerHTML = '播放课程音频';
     lessonAudio = null;
   };
   audio.onerror = function() {
-    btn.innerHTML = '⚠ 加载失败';
+    btn.innerHTML = '加载失败';
     lessonAudio = null;
   };
 }
@@ -650,7 +650,7 @@ function stopLessonAudio() {
   if (audio) { audio.pause(); audio.currentTime = 0; }
   lessonAudio = null;
   var btn = document.getElementById('btnLessonAudio');
-  if (btn) btn.innerHTML = '▶ 播放课程音频';
+  if (btn) btn.innerHTML = '播放课程音频';
 }
 
 function toast(msg) {
@@ -746,7 +746,7 @@ async function loadHomePage() {
             <div class="cc-title">${c.title}</div>
             <div class="cc-meta">${c.subtitle || ''} · ${c.unit_count}单元</div>
           </div>
-          <div class="cc-arrow">&#8250;</div>
+          <div class="cc-arrow">进入</div>
         </div>`).join('');
     } else if (homeCourses) {
       homeCourses.innerHTML = '<div class="empty-state compact"><div class="empty-text">课程正在加载，请稍后刷新</div><button class="btn btn-sm btn-outline" onclick="loadHomePage()">重试</button></div>';
@@ -789,10 +789,10 @@ async function loadCourses(level) {
             <div class="cc-title">${c.title}</div>
             <div class="cc-meta">${c.subtitle || ''} · ${c.unit_count}单元 · Lv.${c.level}</div>
           </div>
-          <div class="cc-arrow">&#8250;</div>
+          <div class="cc-arrow">进入</div>
         </div>`).join('');
     } else {
-      container.innerHTML = '<div class="empty-state"><div class="empty-icon">&#9776;</div><div class="empty-text">暂无课程</div></div>';
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">空</div><div class="empty-text">暂无课程</div></div>';
     }
   } catch(e) {
     container.innerHTML = '<div class="empty-state"><div class="empty-text">课程加载失败</div><button class="btn btn-sm btn-outline" onclick="loadCourses(' + level + ')">重试</button></div>';
@@ -827,12 +827,12 @@ async function openCourse(courseId) {
         <div class="unit-group">
           <div class="unit-header ${ui === 0 ? 'open' : ''}" onclick="toggleUnit(this)">
             <span class="uh-title">${u.title}</span>
-            <span class="uh-arrow">&#9660;</span>
+            <span class="uh-arrow">展开</span>
           </div>
           <div class="lesson-list ${ui === 0 ? 'open' : ''}">
             ${(u.lessons || []).map(l => `
               <div class="lesson-item" onclick="event.stopPropagation();openLesson(${l.id}, '${escAttr(l.title)}')">
-                <div class="li-check">&#10003;</div>
+                <div class="li-check">完</div>
                 <span class="li-title">${l.title}</span>
                 <span class="li-dur">${Math.floor(l.duration/60)}分</span>
               </div>`).join('')}
@@ -893,7 +893,7 @@ async function openLesson(lessonId, title) {
             <div style="font-size:0.6875rem;color:var(--text-tertiary);margin:3px 0">${v.romanization || ''}</div>
             <div style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:6px">${v.chinese}</div>
             ${v.part_of_speech ? `<div style="font-size:0.625rem;color:var(--gold);opacity:0.5;margin-bottom:6px;display:inline-block;padding:1px 8px;border:1px solid var(--border-gold);border-radius:10px">${v.part_of_speech}</div>` : ''}
-            ${v.example_ko ? `<div style="font-size:0.6875rem;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis" onclick="event.stopPropagation();KoreanTTS.speak('${escAttr(v.example_ko)}')">🔊 ${v.example_ko}</div>` : ''}
+            ${v.example_ko ? `<div style="font-size:0.6875rem;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis" onclick="event.stopPropagation();KoreanTTS.speak('${escAttr(v.example_ko)}')">${v.example_ko}</div>` : ''}
           </div>`).join('')}</div>
       `;
     }
@@ -903,14 +903,14 @@ async function openLesson(lessonId, title) {
         <div class="card-title">${lesson.title}</div>
         <div class="text-xs mb-8" style="color:var(--text-tertiary)">${Math.floor(lesson.duration/60)}分钟</div>
         <div class="lesson-audio-bar" style="background:var(--bg-card);border-radius:12px;padding:12px 16px;margin:12px 0;display:flex;align-items:center;gap:10px;border:1px solid var(--border)">
-          <span style="font-size:0.8rem;color:var(--text-secondary)">🎧 课程音频</span>
+          <span style="font-size:0.8rem;color:var(--text-secondary)">课程音频</span>
           <span style="font-size:0.65rem;color:var(--text-tertiary);flex:1">本课讲解音频已预生成，适合跟读和复习</span>
-          <button class="btn btn-sm btn-primary" id="btnLessonAudio" onclick="playLessonAudio(${lessonId})" style="flex-shrink:0">▶ 播放课程音频</button>
+          <button class="btn btn-sm btn-primary" id="btnLessonAudio" onclick="playLessonAudio(${lessonId})" style="flex-shrink:0">播放课程音频</button>
         </div>
         <div class="lesson-content">${renderMarkdown(lesson.content || '', lessonId)}${makePronDiag(lessonId, lesson.title)}</div>
       </div>
       <div class="lesson-actions">
-        <button class="btn btn-sm btn-outline" style="width:100%" onclick="markLessonComplete(${lessonId})">✅ 标记完成</button>
+        <button class="btn btn-sm btn-outline" style="width:100%" onclick="markLessonComplete(${lessonId})">标记完成</button>
       </div>
       ${grammarHtml}
       ${getCultureNote(lessonId)}
@@ -930,7 +930,7 @@ async function startQuiz(lessonId) {
   try {
     const exercises = await api.getExercises(lessonId);
     if (!exercises || !exercises.length) {
-      container.innerHTML = '<div class="empty-state"><div class="empty-icon">&#10003;</div><div class="empty-text">该课时暂无练习题</div></div>';
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">空</div><div class="empty-text">该课时暂无练习题</div></div>';
       return;
     }
     quizState = { questions: exercises, currentIndex: 0, answers: [], lessonId, locked: false };
@@ -1027,7 +1027,7 @@ async function submitFill() {
     saveError({ question: q.question, userAnswer: answer, correctAnswer: correctAnswer, lessonId: quizState.lessonId, timestamp: Date.now() });
   }
 
-  toast(isCorrect ? '✅ 正确!' : '❌ 正确答案: ' + correctAnswer);
+  toast(isCorrect ? '正确' : '正确答案: ' + correctAnswer);
   setTimeout(() => { quizState.currentIndex++; renderQuizQuestion(); }, 1400);
 }
 
@@ -1084,7 +1084,7 @@ async function loadVoicePage() {
               <span style="font-family:var(--font-korean);font-weight:600;color:var(--gold)">${v.korean}</span>
               <span style="font-size:0.75rem;color:var(--text-tertiary);margin-left:8px">${v.chinese}</span>
             </div>
-            <span style="color:var(--text-tertiary);font-size:0.75rem">练习 &#8250;</span>
+            <span style="color:var(--text-tertiary);font-size:0.75rem">练习</span>
           </div>
         </div>`).join('');
     } else {
@@ -1376,8 +1376,8 @@ async function loadAchievements() {
 }
 
 function getAchievementIcon(icon) {
-  const map = { fire: '★', calendar: '■', star: '☆', crown: '♛', bolt: '⚡', gem: '◆', book: '■', graduate: '▲', pencil: '○', trophy: '★' };
-  return map[icon] || '★';
+  const map = { fire: '火', calendar: '日', star: '星', crown: '冠', bolt: '速', gem: '钻', book: '书', graduate: '学', pencil: '练', trophy: '榜' };
+  return map[icon] || '成';
 }
 
 // ── PROFILE ──
@@ -1433,7 +1433,7 @@ function switchTtsVoice(type) {
   document.getElementById('btnVoiceMale').style.background = type === 'male' ? 'rgba(226,182,79,0.15)' : '';
   document.getElementById('btnVoiceMale').style.borderColor = type === 'male' ? 'var(--border-gold)' : '';
   document.getElementById('btnVoiceMale').style.color = type === 'male' ? 'var(--gold)' : '';
-  toast(type === 'female' ? '已切换为女声 👩' : '已切换为男声 👨');
+  toast(type === 'female' ? '已切换为女声' : '已切换为男声');
   // Play a test sound
   setTimeout(() => KoreanTTS.speak(type === 'female' ? '안녕하세요' : '안녕하세요'), 300);
 }
@@ -1558,7 +1558,7 @@ function vowelMouthDiagram() {
       <div style="font-size:0.625rem;color:var(--text-tertiary)">${v.pos}</div>
     </div>`
   ).join('');
-  return `<div class="diag-title">🗣 元音口型示意图</div><div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:12px 0">${items}</div>`;
+  return `<div class="diag-title">元音口型示意图</div><div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:12px 0">${items}</div>`;
 }
 
 // ── SVG: Consonant articulation ──
@@ -1574,12 +1574,12 @@ function consonantArticulation(letters, places, tonguePos) {
       <div style="font-family:var(--font-korean);font-size:1.1rem;color:var(--gold)">${l}</div>
     </div>`
   ).join('');
-  return `<div class="diag-title">🗣 辅音发音部位</div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px 0">${items}</div>`;
+  return `<div class="diag-title">辅音发音部位</div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px 0">${items}</div>`;
 }
 
 // ── SVG: Compound vowel system ──
 function compoundVowelDiagram() {
-  return `<div class="diag-title">🔤 韩文组合原理</div>
+  return `<div class="diag-title">韩文组合原理</div>
 <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding:12px 0">
   <div style="text-align:center;padding:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius)">
     <div style="font-size:0.625rem;color:var(--text-tertiary);margin-bottom:4px">初声 (자음)</div>
@@ -1615,13 +1615,13 @@ function batchimDiagram() {
   let rows = rules.map(r =>
     `<tr><td style="font-family:var(--font-korean);color:var(--gold);font-weight:600;font-size:0.875rem">${r.batchim}</td><td style="font-weight:700;font-size:0.9375rem">${r.sound}</td><td style="font-size:0.75rem;color:var(--text-secondary)">${r.label}</td></tr>`
   ).join('');
-  return `<div class="diag-title">📋 收音(받침)发音规则</div>
+  return `<div class="diag-title">收音(받침)发音规则</div>
   <table class="md-table"><thead><tr><th>收音字母</th><th>发音</th><th>发音部位</th></tr></thead>${rows}</table>`;
 }
 
 // ── SVG: Grammar sentence structure ──
 function grammarStruct(title, formula, example, trans, slot1, slot2) {
-  return `<div class="diag-title">📐 句型结构 — ${title}</div>
+  return `<div class="diag-title">句型结构 — ${title}</div>
   <div class="grammar-struct">
     <div class="gs-formula">${formula}</div>
     <div class="gs-slots">
@@ -1684,14 +1684,14 @@ function openSong(songId) {
       <div class="sdh-desc">${song.desc}</div>
     </div>
     <div class="song-controls">
-      <button class="song-ctrl-btn" id="btnSongPlayAll" onclick="playAllLyrics()">▶ 逐句播放</button>
-      <button class="song-ctrl-btn" id="btnSongFill" onclick="toggleSongFillMode()">📝 歌词填空</button>
-      <button class="song-ctrl-btn" onclick="stopSongPlayback()">⏹ 停止</button>
+      <button class="song-ctrl-btn" id="btnSongPlayAll" onclick="playAllLyrics()">逐句播放</button>
+      <button class="song-ctrl-btn" id="btnSongFill" onclick="toggleSongFillMode()">歌词填空</button>
+      <button class="song-ctrl-btn" onclick="stopSongPlayback()">停止</button>
     </div>
     <div id="songLyrics">
       ${song.lyrics.map((l, i) => `
         <div class="lyric-line" id="lyric-${i}" onclick="playSingleLyric(${i})">
-          <div class="ll-play" id="ll-play-${i}">▶</div>
+          <div class="ll-play" id="ll-play-${i}">播</div>
           <div class="ll-text">
             <div class="ll-ko" id="ll-ko-${i}">${l.ko}</div>
             <div class="ll-zh">${l.zh}</div>
@@ -1728,7 +1728,7 @@ function playAllLyrics() {
   stopSongPlayback();
   const btn = document.getElementById('btnSongPlayAll');
   btn.classList.add('playing');
-  btn.textContent = '⏸ 停止播放';
+  btn.textContent = '停止播放';
   
   let idx = 0;
   function playNext() {
@@ -1751,7 +1751,7 @@ function stopSongPlayback() {
   currentLyricIdx = -1;
   
   const btn = document.getElementById('btnSongPlayAll');
-  if (btn) { btn.classList.remove('playing'); btn.textContent = '▶ 逐句播放'; }
+  if (btn) { btn.classList.remove('playing'); btn.textContent = '逐句播放'; }
   
   document.querySelectorAll('.ll-play.playing').forEach(el => el.classList.remove('playing'));
   document.querySelectorAll('.lyric-line.highlight').forEach(el => el.classList.remove('highlight'));
@@ -1771,10 +1771,10 @@ function toggleSongFillMode() {
   const btn = document.getElementById('btnSongFill');
   if (songFillMode) {
     btn.classList.add('active-mode');
-    btn.textContent = '📝 显示答案';
+    btn.textContent = '显示答案';
   } else {
     btn.classList.remove('active-mode');
-    btn.textContent = '📝 歌词填空';
+    btn.textContent = '歌词填空';
   }
   
   // Rerender lyrics with blanks in fill mode
@@ -1798,7 +1798,7 @@ function toggleSongFillMode() {
       }
     }
     return `<div class="lyric-line" id="lyric-${i}" onclick="playSingleLyric(${i})">
-      <div class="ll-play" id="ll-play-${i}">▶</div>
+      <div class="ll-play" id="ll-play-${i}">播</div>
       <div class="ll-text">
         <div class="ll-ko">${koDisplay}</div>
         <div class="ll-zh">${l.zh}</div>
@@ -1827,8 +1827,8 @@ async function markLessonComplete(lessonId) {
     localStorage.setItem('ka_completed', JSON.stringify(completed));
     // Update the button visual
     const btn = document.querySelector('.lesson-actions .btn-outline');
-    if (btn) { btn.textContent = '✅ 已完成'; btn.disabled = true; btn.style.opacity = '0.6'; }
-    toast('✅ 已标记完成！');
+    if (btn) { btn.textContent = '已完成'; btn.disabled = true; btn.style.opacity = '0.6'; }
+    toast('已标记完成');
   } catch(e) { toast('操作失败'); }
 }
 
@@ -1895,7 +1895,7 @@ function getLessonNav(currentLessonId) {
   // Progress indicator
   const courseLessons = allLessons.filter(l => l.courseId === allLessons[currentIdx].courseId);
   const courseIdx = courseLessons.findIndex(l => l.id === currentLessonId);
-  html += `<span style="font-size:0.6875rem;color:var(--text-tertiary);text-align:center">${courseIdx + 1}/${courseLessons.length} 课${currentCompleted ? ' ✅' : ''}</span>`;
+  html += `<span style="font-size:0.6875rem;color:var(--text-tertiary);text-align:center">${courseIdx + 1}/${courseLessons.length} 课${currentCompleted ? ' 已完成' : ''}</span>`;
   
   // Next lesson
   if (currentIdx < allLessons.length - 1) {
@@ -1934,19 +1934,19 @@ async function wxDoLogin() {
   if (data && data.user) {
     localStorage.setItem('ka_wx_linked', '1');
     updateWxLoginUI();
-    toast('✅ 登录成功');
+    toast('登录成功');
   }
 }
 
 async function wxMockLogin() {
   wxCloseModal();
-  toast('🔧 模拟登录中...');
+  toast('模拟登录中...');
   const data = await doMockLogin();
   if (data && data.user) {
     localStorage.setItem('ka_wx_linked', '1');
     localStorage.setItem('ka_wx_nickname', data.user.nickname || '测试用户');
     updateWxLoginUI();
-    toast('✅ 模拟登录成功');
+    toast('模拟登录成功');
   }
 }
 
@@ -2041,8 +2041,8 @@ function loadErrorNotebook() {
       return `<div class="error-card">
         <div class="ec-question">${e.question}</div>
         <div class="ec-answers">
-          <span class="ec-user">❌ 你的: ${e.userAnswer}</span>
-          <span class="ec-correct">✅ 正确: ${e.correctAnswer}</span>
+          <span class="ec-user">你的: ${e.userAnswer}</span>
+          <span class="ec-correct">正确: ${e.correctAnswer}</span>
         </div>
         <div class="ec-meta">
           <span>${dateStr} · 课时${e.lessonId}</span>
@@ -2069,41 +2069,41 @@ function clearErrors() {
 //  CULTURE NOTES
 // ══════════════════════════════════════════
 const CULTURE_NOTES = {
-  1: '🇰🇷 韩文(한글)是世宗大王于1443年创制的表音文字，被誉为世界上最科学的文字之一。韩文由24个基本字母(14个辅音+10个元音)组成，拼合方式类似方块字。',
-  2: '🇰🇷 韩语是黏着语，通过添加助词(조사)和语尾(어미)来表达语法关系。语序为SOV(主-宾-谓)，与中文的SVO不同。',
-  3: '🇰🇷 韩国有两种计数系统：汉字词数词(일,이,삼...)和固有词数词(하나,둘,셋...)。汉字词用于日期、金钱、电话号码，固有词用于年龄、人数、物品数量。',
-  4: '🇰🇷 韩语中的敬语(존댓말)体系非常复杂。根据说话对象的不同，使用不同的语尾：-요(一般敬语)、-ㅂ니다(正式敬语)、-아/어(半语/朋友之间)。',
-  5: '🇰🇷 韩国的姓氏大约有280多个，其中金(김)、李(이/리)、朴(박)、崔(최)、郑(정)五大姓氏约占人口的一半。',
-  6: '🇰🇷 韩国人喜欢用"우리(我们)"而不是"내(我的)"。比如"우리 집(我们家)"、"우리 엄마(我们妈妈)"。这反映了韩国人的集体主义文化。',
-  7: '🇰🇷 韩国人见面时通常会鞠躬(인사)，同时说"안녕하세요"。鞠躬的角度取决于对方的地位和年龄。',
-  8: '🇰🇷 韩国是筷子文化圈的国家，但韩国筷子通常是金属制的扁平筷子(쇠젓가락)，与中国的木筷和日本的尖头筷不同。',
-  9: '🇰🇷 韩国年龄计算法：出生即为1岁，过新年就长1岁(不是生日)。所以韩国人通常比国际年龄大1-2岁。2023年韩国已开始改用国际年龄。',
-  10: '🇰🇷 K-POP是韩国文化输出的代表。BTS(방탄소년단)的歌曲中经常出现韩语日常表达，如"피 땀 눈물(血汗泪)"、"봄날(春日)"等。',
-  11: '🇰🇷 韩国的敬酒礼仪：接酒时要用双手；倒酒时要用右手持瓶，左手轻托右臂；喝酒时要稍微侧身，不对着长辈正面喝酒。',
-  12: '🇰🇷 韩国人非常重视教育(교육)，高考(수능)当天全国会调整交通，飞机起降时间也会改变以确保听力考试安静。',
-  13: '🇰🇷 在韩国，数字4(사)因为与"死"同音被视为不吉利，很多建筑物的4楼用"F"代替。这个习俗来源于中国汉字文化。',
-  14: '🇰🇷 韩国料理中泡菜(김치)是必不可少的配菜。韩国人常说"김치 없인 못 살아(没有泡菜活不下去)"。每家每户都有自己独特的泡菜配方。',
-  15: '🇰🇷 韩国的"빨리 빨리(快点快点)"文化闻名世界。韩国是世界上最快的互联网国家之一，外卖、快递都追求极致速度。',
-  16: '🇰🇷 韩语中的拟声拟态词(의성어·의태어)非常丰富。比如"반짝반짝(一闪一闪)"、"주룩주룩(哗啦啦)"、"살랑살랑(轻轻吹拂)"等。',
-  17: '🇰🇷 韩国人在外出就餐时，通常由年长者或请客的人买单。AA制(더치페이)在年轻人中越来越普遍，但在传统场合仍不太常见。',
-  18: '🇰🇷 韩国的"눈치(眼力见)"文化非常重要。눈치指的是察言观色、理解气氛的能力。눈치 없이(没有眼力见)是被认为缺乏社交智慧的表现。',
-  19: '🇰🇷 韩国人表达感情时常用"~죠?"(对吧?)、"~네요"(啊~)这样的语尾来表达共感。韩国文化强调情感共鸣(공감)，这在语言中体现得很充分。',
-  20: '🇰🇷 在韩国，递东西(尤其是钱)时应该用右手，或双手递出。用左手递东西被认为是不礼貌的。这与韩国以右为尊的传统有关。',
-  21: '🇰🇷 韩国的情人节(밸런타인데이)是女生送男生巧克力，3月14日白色情人节(화이트데이)是男生回礼。还有4月14日黑色情人节(블랙데이)，单身的人会吃炸酱面。',
-  22: '🇰🇷 韩国人打电话时说"여보세요(喂)"，挂电话前说"들어가세요(请回去吧)"而不是"再见"。这是韩语特有的电话礼仪表达。',
-  23: '🇰🇷 韩国的"정(情)"文化：정是一种难以翻译的情感，包含了依恋、关怀、温情和羁绊。韩国人常说"정이 들다(产生感情)"、정이 많다(多情)。',
-  24: '🇰🇷 韩语中有大量来自中文的汉字词(한자어)，约占词汇量的60%。学习汉字词可以帮助快速扩大词汇量。例如학교(学校)、가족(家族)、음악(音乐)。',
-  25: '🇰🇷 韩国人在吃饭前会说"잘 먹겠습니다(我会好好吃的)"，吃完后说"잘 먹었습니다(我吃好了)"。这是对准备食物的人的感谢表达。',
-  26: '🇰🇷 韩国的"해장(解酒)"文化非常发达。해장국(醒酒汤)、콩나물국(豆芽汤)是韩国人宿醉后的传统解酒食物。',
-  27: '🇰🇷 韩国的반말(半语)和존댓말(敬语)使用规则：对年长者、陌生人、上级必须用敬语；对亲密的同龄人或年幼者可以用半语。用错语体可能被认为无礼。',
-  28: '🇰🇷 韩国人用手指东西或召唤他人时，应用手掌朝上的手势，而不是用一个手指指人。用一个手指指人被认为非常不礼貌。',
-  29: '🇰🇷 韩国的"도깨비(鬼怪/도깨비)"与中国的妖怪不同，韩国鬼怪更调皮可爱，喜欢恶作剧但不邪恶。热门韩剧《도깨비》让这个概念全球闻名。',
-  30: '🇰🇷 韩国的传统服饰한복(韩服)以优美的线条和鲜艳的色彩著称。现代改良韩服(생활한복)在日常生活中也越来越受欢迎。',
-  31: '🇰🇷 韩语中"사랑해(我爱你)"是一个很重的词，不轻易使用。韩国人更常用"좋아해(喜欢你)"来表达好感。告白文化(고백)在韩国年轻人中很流行。',
-  32: '🇰🇷 韩国的"미(美)"文化：韩国是世界上整容手术比例最高的国家之一，对美的追求也反映在语言中——有大量描述外貌的词汇，如"예쁘다(漂亮)"、"잘생겼다(帅)"。',
-  33: '🇰🇷 韩国人在表达感谢时，最常用"감사합니다"(正式)和"고마워요"(日常)。收到礼物时要说"잘 쓰겠습니다(我会好好用的)"，被请客后说"잘 먹었습니다(我吃好了)"。',
-  34: '🇰🇷 韩国的"빨래(洗衣)"文化：韩国人普遍使用洗衣机，但一些传统韩服仍需手洗。韩国的公寓里通常都有阳台晾衣空间(베란다)，烘干机也越来越普及。',
-  35: '🇰🇷 韩国的节日文化：最重要的节日是설날(春节)和추석(秋夕/中秋节)。설날吃떡국(年糕汤)，추석吃송편(松饼)。此外还有삼일절(三一节)、광복절(光复节)等纪念日。',
+  1: ' 韩文(한글)是世宗大王于1443年创制的表音文字，被誉为世界上最科学的文字之一。韩文由24个基本字母(14个辅音+10个元音)组成，拼合方式类似方块字。',
+  2: ' 韩语是黏着语，通过添加助词(조사)和语尾(어미)来表达语法关系。语序为SOV(主-宾-谓)，与中文的SVO不同。',
+  3: ' 韩国有两种计数系统：汉字词数词(일,이,삼...)和固有词数词(하나,둘,셋...)。汉字词用于日期、金钱、电话号码，固有词用于年龄、人数、物品数量。',
+  4: ' 韩语中的敬语(존댓말)体系非常复杂。根据说话对象的不同，使用不同的语尾：-요(一般敬语)、-ㅂ니다(正式敬语)、-아/어(半语/朋友之间)。',
+  5: ' 韩国的姓氏大约有280多个，其中金(김)、李(이/리)、朴(박)、崔(최)、郑(정)五大姓氏约占人口的一半。',
+  6: ' 韩国人喜欢用"우리(我们)"而不是"내(我的)"。比如"우리 집(我们家)"、"우리 엄마(我们妈妈)"。这反映了韩国人的集体主义文化。',
+  7: ' 韩国人见面时通常会鞠躬(인사)，同时说"안녕하세요"。鞠躬的角度取决于对方的地位和年龄。',
+  8: ' 韩国是筷子文化圈的国家，但韩国筷子通常是金属制的扁平筷子(쇠젓가락)，与中国的木筷和日本的尖头筷不同。',
+  9: ' 韩国年龄计算法：出生即为1岁，过新年就长1岁(不是生日)。所以韩国人通常比国际年龄大1-2岁。2023年韩国已开始改用国际年龄。',
+  10: ' K-POP是韩国文化输出的代表。BTS(방탄소년단)的歌曲中经常出现韩语日常表达，如"피 땀 눈물(血汗泪)"、"봄날(春日)"等。',
+  11: ' 韩国的敬酒礼仪：接酒时要用双手；倒酒时要用右手持瓶，左手轻托右臂；喝酒时要稍微侧身，不对着长辈正面喝酒。',
+  12: ' 韩国人非常重视教育(교육)，高考(수능)当天全国会调整交通，飞机起降时间也会改变以确保听力考试安静。',
+  13: ' 在韩国，数字4(사)因为与"死"同音被视为不吉利，很多建筑物的4楼用"F"代替。这个习俗来源于中国汉字文化。',
+  14: ' 韩国料理中泡菜(김치)是必不可少的配菜。韩国人常说"김치 없인 못 살아(没有泡菜活不下去)"。每家每户都有自己独特的泡菜配方。',
+  15: ' 韩国的"빨리 빨리(快点快点)"文化闻名世界。韩国是世界上最快的互联网国家之一，外卖、快递都追求极致速度。',
+  16: ' 韩语中的拟声拟态词(의성어·의태어)非常丰富。比如"반짝반짝(一闪一闪)"、"주룩주룩(哗啦啦)"、"살랑살랑(轻轻吹拂)"等。',
+  17: ' 韩国人在外出就餐时，通常由年长者或请客的人买单。AA制(더치페이)在年轻人中越来越普遍，但在传统场合仍不太常见。',
+  18: ' 韩国的"눈치(眼力见)"文化非常重要。눈치指的是察言观色、理解气氛的能力。눈치 없이(没有眼力见)是被认为缺乏社交智慧的表现。',
+  19: ' 韩国人表达感情时常用"~죠?"(对吧?)、"~네요"(啊~)这样的语尾来表达共感。韩国文化强调情感共鸣(공감)，这在语言中体现得很充分。',
+  20: ' 在韩国，递东西(尤其是钱)时应该用右手，或双手递出。用左手递东西被认为是不礼貌的。这与韩国以右为尊的传统有关。',
+  21: ' 韩国的情人节(밸런타인데이)是女生送男生巧克力，3月14日白色情人节(화이트데이)是男生回礼。还有4月14日黑色情人节(블랙데이)，单身的人会吃炸酱面。',
+  22: ' 韩国人打电话时说"여보세요(喂)"，挂电话前说"들어가세요(请回去吧)"而不是"再见"。这是韩语特有的电话礼仪表达。',
+  23: ' 韩国的"정(情)"文化：정是一种难以翻译的情感，包含了依恋、关怀、温情和羁绊。韩国人常说"정이 들다(产生感情)"、정이 많다(多情)。',
+  24: ' 韩语中有大量来自中文的汉字词(한자어)，约占词汇量的60%。学习汉字词可以帮助快速扩大词汇量。例如학교(学校)、가족(家族)、음악(音乐)。',
+  25: ' 韩国人在吃饭前会说"잘 먹겠습니다(我会好好吃的)"，吃完后说"잘 먹었습니다(我吃好了)"。这是对准备食物的人的感谢表达。',
+  26: ' 韩国的"해장(解酒)"文化非常发达。해장국(醒酒汤)、콩나물국(豆芽汤)是韩国人宿醉后的传统解酒食物。',
+  27: ' 韩国的반말(半语)和존댓말(敬语)使用规则：对年长者、陌生人、上级必须用敬语；对亲密的同龄人或年幼者可以用半语。用错语体可能被认为无礼。',
+  28: ' 韩国人用手指东西或召唤他人时，应用手掌朝上的手势，而不是用一个手指指人。用一个手指指人被认为非常不礼貌。',
+  29: ' 韩国的"도깨비(鬼怪/도깨비)"与中国的妖怪不同，韩国鬼怪更调皮可爱，喜欢恶作剧但不邪恶。热门韩剧《도깨비》让这个概念全球闻名。',
+  30: ' 韩国的传统服饰한복(韩服)以优美的线条和鲜艳的色彩著称。现代改良韩服(생활한복)在日常生活中也越来越受欢迎。',
+  31: ' 韩语中"사랑해(我爱你)"是一个很重的词，不轻易使用。韩国人更常用"좋아해(喜欢你)"来表达好感。告白文化(고백)在韩国年轻人中很流行。',
+  32: ' 韩国的"미(美)"文化：韩国是世界上整容手术比例最高的国家之一，对美的追求也反映在语言中——有大量描述外貌的词汇，如"예쁘다(漂亮)"、"잘생겼다(帅)"。',
+  33: ' 韩国人在表达感谢时，最常用"감사합니다"(正式)和"고마워요"(日常)。收到礼物时要说"잘 쓰겠습니다(我会好好用的)"，被请客后说"잘 먹었습니다(我吃好了)"。',
+  34: ' 韩国的"빨래(洗衣)"文化：韩国人普遍使用洗衣机，但一些传统韩服仍需手洗。韩国的公寓里通常都有阳台晾衣空间(베란다)，烘干机也越来越普及。',
+  35: ' 韩国的节日文化：最重要的节日是설날(春节)和추석(秋夕/中秋节)。설날吃떡국(年糕汤)，추석吃송편(松饼)。此外还有삼일절(三一节)、광복절(光复节)等纪念日。',
 };
 
 function getCultureNote(lessonId) {
@@ -2111,7 +2111,7 @@ function getCultureNote(lessonId) {
   if (!note) return '';
   
   return `<div class="culture-note">
-    <div class="cn-title">🇰🇷 文化笔记</div>
+    <div class="cn-title"> 文化笔记</div>
     <div class="cn-body">${note}</div>
   </div>`;
 }
@@ -2176,7 +2176,7 @@ async function loadLeaderboard() {
     else if (i === 2) rankClass = 'bronze';
     
     return `<div class="leaderboard-row${e.isMe ? ' lb-you' : ''}">
-      <div class="lb-rank ${rankClass}">${i < 3 ? ['🥇','🥈','🥉'][i] : rankDisplay}</div>
+      <div class="lb-rank ${rankClass}">${i < 3 ? ['1','2','3'][i] : rankDisplay}</div>
       <div class="lb-info">
         <div class="lb-name">${e.name}${e.isMe ? ' (你)' : ''}</div>
         <div class="lb-level">Level ${e.level}</div>
@@ -2379,7 +2379,7 @@ function appendChatBubble(role, korean, chinese) {
   if (role === 'ai') {
     bubble.innerHTML = `
       <div class="cb-korean" onclick="event.stopPropagation();KoreanTTS.speak('${escAttr(korean)}')">
-        ${korean} <span class="cb-speak">🔊</span>
+        ${korean} <span class="cb-speak"></span>
       </div>
       <div class="cb-chinese">${chinese}</div>`;
   } else {
@@ -2402,12 +2402,12 @@ let podcastSpeed = 1;
 let podcastAutoAdvance = true;
 
 const PODCAST_DATA = [
-  { id: 'p1', title: '韩语发音入门', lessons: '1-5课', duration: '约15分钟', icon: '🔤', desc: '从韩文基本字母开始，学习元音、辅音、收音的发音规则和口型技巧。' },
-  { id: 'p2', title: '韩语日常问候', lessons: '第6课', duration: '约8分钟', icon: '👋', desc: '学习韩国人见面时的各种问候方式，以及敬语和半语的区别使用。' },
-  { id: 'p3', title: '韩语数字与时间', lessons: '11-14课', duration: '约12分钟', icon: '🔢', desc: '掌握韩语两种数字系统(汉字词和固有词)以及时间、日期、年龄的说法。' },
-  { id: 'p4', title: '韩语基础语法', lessons: '16-18课', duration: '约15分钟', icon: '📐', desc: '理解韩语动词形容词的语尾变化，包括现在时、过去时和将来时。' },
-  { id: 'p5', title: '韩语购物与餐厅', lessons: '10, 21课', duration: '约10分钟', icon: '🛒', desc: '学习在韩国购物和餐厅用餐时必备的实用韩语表达。' },
-  { id: 'p6', title: '韩语歌曲学韩语', lessons: '歌曲概览', duration: '约12分钟', icon: '🎵', desc: '通过K-POP歌曲学习有趣的韩语词汇和日常表达方式。' }
+  { id: 'p1', title: '韩语发音入门', lessons: '1-5课', duration: '约15分钟', icon: '发', desc: '从韩文基本字母开始，学习元音、辅音、收音的发音规则和口型技巧。' },
+  { id: 'p2', title: '韩语日常问候', lessons: '第6课', duration: '约8分钟', icon: '问', desc: '学习韩国人见面时的各种问候方式，以及敬语和半语的区别使用。' },
+  { id: 'p3', title: '韩语数字与时间', lessons: '11-14课', duration: '约12分钟', icon: '数', desc: '掌握韩语两种数字系统(汉字词和固有词)以及时间、日期、年龄的说法。' },
+  { id: 'p4', title: '韩语基础语法', lessons: '16-18课', duration: '约15分钟', icon: '语', desc: '理解韩语动词形容词的语尾变化，包括现在时、过去时和将来时。' },
+  { id: 'p5', title: '韩语购物与餐厅', lessons: '10, 21课', duration: '约10分钟', icon: '餐', desc: '学习在韩国购物和餐厅用餐时必备的实用韩语表达。' },
+  { id: 'p6', title: '韩语歌曲学韩语', lessons: '歌曲概览', duration: '约12分钟', icon: '歌', desc: '通过K-POP歌曲学习有趣的韩语词汇和日常表达方式。' }
 ];
 
 const PODCAST_SCRIPTS = {
@@ -2556,11 +2556,11 @@ function loadPodcasts() {
       <div class="pc-info">
         <div class="pc-title">${p.title}</div>
         <div class="pc-meta">
-          <span>📚 ${p.lessons}</span>
-          <span>⏱ ${p.duration}</span>
+          <span>${p.lessons}</span>
+          <span>${p.duration}</span>
         </div>
       </div>
-      <div class="pc-play" onclick="event.stopPropagation();podcastQuickPlay('${p.id}')">▶</div>
+      <div class="pc-play" onclick="event.stopPropagation();podcastQuickPlay('${p.id}')">播</div>
     </div>`).join('');
 }
 
@@ -2585,15 +2585,15 @@ function openPodcast(podcastId) {
 
   container.innerHTML = `
     <div class="podcast-section-title">${podcast.title}</div>
-    <div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:12px">📚 ${podcast.lessons} · ⏱ ${podcast.duration}</div>
+    <div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:12px">${podcast.lessons} · ${podcast.duration}</div>
     <div style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6">${podcast.desc}</div>
-    <button class="btn btn-primary" style="margin-bottom:16px" onclick="podcastPlayAll()">▶ 连续播放全部内容</button>
+    <button class="btn btn-primary" style="margin-bottom:16px" onclick="podcastPlayAll()">连续播放全部内容</button>
     <div id="podcastSections">
       ${script.map((s, i) => {
         let cls = 'podcast-section ' + s.type;
         let content = s.text;
         if (s.type === 'korean') {
-          content = `<span class="ps-speak" id="ps-speak-${i}">▶</span> ${s.text}`;
+          content = `<span class="ps-speak" id="ps-speak-${i}">播</span> ${s.text}`;
         }
         return `<div class="${cls}" id="ps-${i}" onclick="${s.type === 'korean' ? 'podcastPlaySection('+i+')' : ''}">${content}</div>`;
       }).join('')}
@@ -2652,7 +2652,7 @@ function podcastAdvance() {
   currentSectionIdx++;
   if (currentSectionIdx >= script.length) {
     stopPodcastPlayback();
-    toast('播客播放完毕 🎉');
+    toast('播客播放完毕');
     return;
   }
   podcastPlaySection(currentSectionIdx);
@@ -2666,7 +2666,7 @@ function podcastPlayAll() {
   currentSectionIdx = 0;
 
   const btn = document.getElementById('ppPlayBtn');
-  btn.textContent = '⏸';
+  btn.textContent = '暂停';
   btn.classList.add('playing');
 
   podcastPlaySection(0);
@@ -2687,7 +2687,7 @@ function stopPodcastPlayback() {
   if (podcastTimer) { clearTimeout(podcastTimer); podcastTimer = null; }
 
   const btn = document.getElementById('ppPlayBtn');
-  if (btn) { btn.textContent = '▶'; btn.classList.remove('playing'); }
+  if (btn) { btn.textContent = '播放'; btn.classList.remove('playing'); }
 
   document.querySelectorAll('.podcast-section.playing').forEach(s => s.classList.remove('playing'));
 }

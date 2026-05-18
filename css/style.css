@@ -509,7 +509,7 @@ body {
 .unit-header .uh-title { font-weight: 600; font-size: 0.875rem; color: var(--text); }
 .unit-header .uh-count { font-size: 0.6875rem; color: var(--text-tertiary); }
 .unit-header .uh-arrow { color: var(--text-dim); transition: transform 0.3s; }
-.unit-header.open .uh-arrow { transform: rotate(180deg); }
+.unit-header.open .uh-arrow { transform: none; }
 
 .lesson-list { display: none; }
 .lesson-list.open { display: block; }

@@ -24,7 +24,7 @@
       <view class="card-title">{{item.title}}</view>
       <view class="card-subtitle">{{item.description}}</view>
       <view class="lesson-row" wx:for="{{item.lessons}}" wx:for-item="lesson" wx:key="id" bindtap="openLesson" data-id="{{lesson.id}}" data-title="{{lesson.title}}">
-        <text class="lesson-check">✓</text>
+        <text class="lesson-check">完</text>
         <text class="lesson-title">{{lesson.title}}</text>
         <text class="lesson-time">10分</text>
       </view>

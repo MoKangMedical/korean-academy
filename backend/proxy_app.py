@@ -29,7 +29,14 @@ def filtered_headers(items: Iterable[tuple[str, str]]) -> dict[str, str]:
     headers: dict[str, str] = {}
     for key, value in items:
         lower = key.lower()
-        if lower in HOP_BY_HOP_HEADERS or lower in {"host", "content-length"}:
+        if lower in HOP_BY_HOP_HEADERS or lower in {
+            "host",
+            "content-length",
+            "access-control-allow-origin",
+            "access-control-allow-headers",
+            "access-control-allow-methods",
+            "access-control-allow-credentials",
+        }:
             continue
         headers[key] = value
     return headers

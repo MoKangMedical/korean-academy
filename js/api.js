@@ -22,14 +22,15 @@ const api = {
    */
   async request(url, options = {}) {
     const token = localStorage.getItem('ka_token');
+    const method = options.method || 'GET';
     const headers = {};
-    if (options.contentType !== null) {
+    if (options.contentType !== null && (options.data || method !== 'GET')) {
       headers['Content-Type'] = options.contentType || 'application/json';
     }
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const res = await fetch(API_BASE + url, {
-      method: options.method || 'GET',
+      method,
       headers,
       body: options.data ? (
         options.contentType === null
@@ -40,6 +41,13 @@ const api = {
     if (res.status === 401) {
       localStorage.removeItem('ka_token');
       return null;
+    }
+    if (!res.ok) {
+      throw new Error(`API ${res.status}: ${url}`);
+    }
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      return res.text();
     }
     return res.json();
   },

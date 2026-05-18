@@ -448,8 +448,8 @@ console.log('Korean Academy v2 — no service worker');
 
 </div><!-- /#app -->
 
-<script src="js/api.js?v=13"></script>
-<script src="js/songs.js?v=11"></script>
+<script src="js/api.js?v=14"></script>
+<script src="js/songs.js?v=12"></script>
 <script>
 // ═══════════════════════════════════════════════════
 //  KOREAN ACADEMY v2 — App Logic
@@ -467,15 +467,20 @@ let currentFlashcard = null;
 let voiceBlob = null;
 let voiceTargetText = '';
 
+function isLoggedIn() {
+  return !!localStorage.getItem('ka_token');
+}
+
 // ── Init ──
 document.addEventListener('DOMContentLoaded', async () => {
-  await doMockLogin();
-  initParticles();
-  loadHomePage();
-  loadCourses(0);
-  
   document.getElementById('backBtn').addEventListener('click', goBack);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') goBack(); });
+
+  initParticles();
+  restoreCachedUser();
+
+  loadHomePage();
+  loadCourses(0);
 });
 
 // ── Particles ──
@@ -654,6 +659,12 @@ async function doMockLogin() {
   return data;
 }
 
+function restoreCachedUser() {
+  const cached = localStorage.getItem('ka_user');
+  if (!cached) return;
+  try { updateUserUI(JSON.parse(cached)); } catch(_) {}
+}
+
 function updateUserUI(user) {
   if (!user) return;
   document.getElementById('profileNickname').textContent = user.nickname || '韩语学习者';
@@ -689,11 +700,14 @@ function drawRing(canvasId, percent, color) {
 // ── HOME ──
 async function loadHomePage() {
   try {
-    const [stats, courses, streak] = await Promise.all([
-      api.getProgress(),
+    const [statsResult, coursesResult, streakResult] = await Promise.allSettled([
+      isLoggedIn() ? api.getProgress() : Promise.resolve(null),
       api.getCourses(),
-      api.getStreak().catch(() => null)
+      isLoggedIn() ? api.getStreak() : Promise.resolve(null)
     ]);
+    const stats = statsResult.status === 'fulfilled' ? statsResult.value : null;
+    const courses = coursesResult.status === 'fulfilled' ? coursesResult.value : null;
+    const streak = streakResult.status === 'fulfilled' ? streakResult.value : null;
     
     if (streak) {
       document.getElementById('streakCount').textContent = streak.current_streak || 0;
@@ -711,6 +725,7 @@ async function loadHomePage() {
       document.getElementById('ringAccuracyVal').textContent = (stats.correct_rate || 0) + '%';
     }
     
+    const homeCourses = document.getElementById('homeCourses');
     if (courses && courses.length) {
       document.getElementById('homeCourses').innerHTML = courses.slice(0, 3).map(c => `
         <div class="course-card" onclick="openCourse(${c.id})">
@@ -721,10 +736,13 @@ async function loadHomePage() {
           </div>
           <div class="cc-arrow">&#8250;</div>
         </div>`).join('');
+    } else if (homeCourses) {
+      homeCourses.innerHTML = '<div class="empty-state compact"><div class="empty-text">课程正在加载，请稍后刷新</div><button class="btn btn-sm btn-outline" onclick="loadHomePage()">重试</button></div>';
     }
     
     // Flashcard due count
     try {
+      if (!isLoggedIn()) return;
       const fcStats = await api.getFlashcardStats();
       if (fcStats && fcStats.due > 0) {
         document.getElementById('qaFlashcardCount').textContent = fcStats.due + '张待复习';
@@ -734,7 +752,13 @@ async function loadHomePage() {
       }
     } catch(e) {}
     
-  } catch(e) { console.error('Home load error:', e); }
+  } catch(e) {
+    console.error('Home load error:', e);
+    const homeCourses = document.getElementById('homeCourses');
+    if (homeCourses) {
+      homeCourses.innerHTML = '<div class="empty-state compact"><div class="empty-text">首页数据暂时不可用</div><button class="btn btn-sm btn-outline" onclick="loadHomePage()">重试</button></div>';
+    }
+  }
 }
 
 // ── COURSES ──
@@ -759,7 +783,7 @@ async function loadCourses(level) {
       container.innerHTML = '<div class="empty-state"><div class="empty-icon">&#9776;</div><div class="empty-text">暂无课程</div></div>';
     }
   } catch(e) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-text">加载失败</div></div>';
+    container.innerHTML = '<div class="empty-state"><div class="empty-text">课程加载失败</div><button class="btn btn-sm btn-outline" onclick="loadCourses(' + level + ')">重试</button></div>';
   }
 }
 
@@ -789,11 +813,11 @@ async function openCourse(courseId) {
       </div>
       ${(data.units || []).map((u, ui) => `
         <div class="unit-group">
-          <div class="unit-header" onclick="toggleUnit(this)">
+          <div class="unit-header ${ui === 0 ? 'open' : ''}" onclick="toggleUnit(this)">
             <span class="uh-title">${u.title}</span>
             <span class="uh-arrow">&#9660;</span>
           </div>
-          <div class="lesson-list">
+          <div class="lesson-list ${ui === 0 ? 'open' : ''}">
             ${(u.lessons || []).map(l => `
               <div class="lesson-item" onclick="event.stopPropagation();openLesson(${l.id}, '${escAttr(l.title)}')">
                 <div class="li-check">&#10003;</div>
@@ -1051,8 +1075,12 @@ async function loadVoicePage() {
             <span style="color:var(--text-tertiary);font-size:0.75rem">练习 &#8250;</span>
           </div>
         </div>`).join('');
+    } else {
+      document.getElementById('voiceVocabList').innerHTML = '<div class="empty-state compact"><div class="empty-text">暂无可练习词汇</div></div>';
     }
-  } catch(e) {}
+  } catch(e) {
+    document.getElementById('voiceVocabList').innerHTML = '<div class="empty-state compact"><div class="empty-text">词汇加载失败</div><button class="btn btn-sm btn-outline" onclick="loadVoicePage()">重试</button></div>';
+  }
 }
 
 function openVoiceForLesson(lessonId) {
@@ -1142,6 +1170,17 @@ async function loadFlashcards() {
   const container = document.getElementById('flashcardContainer');
   const empty = document.getElementById('flashcardEmpty');
   const actions = document.getElementById('flashcardActions');
+  if (!isLoggedIn()) {
+    container.style.display = 'none';
+    empty.style.display = 'block';
+    actions.style.display = 'none';
+    document.getElementById('fcProgress').textContent = '-';
+    document.getElementById('fcTotal').textContent = 0;
+    document.getElementById('fcDue').textContent = 0;
+    document.getElementById('fcMastered').textContent = 0;
+    document.getElementById('fcHistory').style.display = 'none';
+    return;
+  }
   container.style.display = 'block';
   empty.style.display = 'none';
   actions.style.display = 'none';
@@ -1271,7 +1310,7 @@ async function loadDaily() {
       document.getElementById('dailyCard').style.display = 'block';
     }
     
-    const streak = await api.getStreak();
+    const streak = isLoggedIn() ? await api.getStreak() : null;
     if (streak) {
       document.getElementById('dailyStreakCount').textContent = streak.current_streak || 0;
       document.getElementById('dailyLongestStreak').textContent = streak.longest_streak || 0;
@@ -1305,6 +1344,10 @@ async function submitDaily() {
 
 // ── ACHIEVEMENTS ──
 async function loadAchievements() {
+  if (!isLoggedIn()) {
+    document.getElementById('achXPTotal').textContent = '0 XP';
+    return;
+  }
   try {
     const achievements = await api.getAchievements();
     if (achievements && achievements.length) {
@@ -1327,6 +1370,11 @@ function getAchievementIcon(icon) {
 
 // ── PROFILE ──
 async function loadProfile() {
+  if (!isLoggedIn()) {
+    loadErrorNotebook();
+    updateWxLoginUI();
+    return;
+  }
   try {
     const [stats, streak] = await Promise.all([
       api.getProgress(),
@@ -2665,6 +2713,18 @@ function updatePodcastProgress() {
 }
 
 console.log('Pages: home | courses | course-detail | lesson | quiz | quiz-result | voice | flashcard | daily | achievements | profile | leaderboard | chat | podcast');
+Object.assign(window, {
+  switchTab, navigateTo, goBack, showPage, playLessonAudio, stopLessonAudio, toast,
+  isLoggedIn, doMockLogin, restoreCachedUser, loadHomePage, loadCourses, filterCourses, openCourse, toggleUnit,
+  openLesson, startQuiz, selectOption, submitFill, loadVoicePage, openVoiceForLesson,
+  setVoiceTarget, playTargetAudio, toggleRecording, submitVoice, loadFlashcards,
+  flipCard, playFcAudio, rateCard, skipCard, loadDaily, submitDaily, loadAchievements,
+  loadProfile, setTtsRate, switchTtsVoice, markLessonComplete, reviewErrorLesson,
+  revealBlank, filterSongs, openSong, playSingleLyric, playAllLyrics, stopSongPlayback,
+  toggleSongFillMode, openPodcast, podcastPlayAll, podcastTogglePlay, podcastSkip,
+  podcastSetSpeed, sendChatMessage, sendQuickPhrase, switchToScenario,
+  wxLogin, wxDoLogin, wxMockLogin, wxCloseModal, wxLogout
+});
 </script>
 </body>
 </html>

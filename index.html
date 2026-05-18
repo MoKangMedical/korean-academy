@@ -6,7 +6,7 @@
 <title>文文的韩语老师</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="css/style.css?v=12">
+<link rel="stylesheet" href="css/style.css?v=13">
 <script>
 // SW disabled — always load fresh from server
 console.log('Korean Academy v2 — no service worker');
@@ -130,6 +130,10 @@ console.log('Korean Academy v2 — no service worker');
 
 <!-- ==================== SONGS LIST ==================== -->
 <section class="page" id="page-songs">
+  <div class="card card-gold page-intro">
+    <div class="card-title">韩语歌曲</div>
+    <div class="card-subtitle">逐句听唱、歌词拆解、填空练习，和课程页保持同一套学习体验</div>
+  </div>
   <div class="filter-pills">
     <span class="filter-pill active" onclick="filterSongs(0, this)">全部</span>
     <span class="filter-pill" onclick="filterSongs(1, this)">入门</span>
@@ -280,6 +284,10 @@ console.log('Korean Academy v2 — no service worker');
 
 <!-- ==================== AI CHAT ==================== -->
 <section class="page" id="page-chat">
+  <div class="card card-gold page-intro">
+    <div class="card-title">AI 韩语对话</div>
+    <div class="card-subtitle">选择场景后用韩语开口练习，系统会给出韩语回复和中文理解</div>
+  </div>
   <div class="scenario-pills" id="scenarioPills">
     <span class="scenario-pill active" onclick="switchToScenario('restaurant')">🍽️ 餐厅</span>
     <span class="scenario-pill" onclick="switchToScenario('meeting')">🤝 见面</span>
@@ -307,6 +315,10 @@ console.log('Korean Academy v2 — no service worker');
 
 <!-- ==================== PODCAST ==================== -->
 <section class="page" id="page-podcast">
+  <div class="card card-gold page-intro">
+    <div class="card-title">韩语播客</div>
+    <div class="card-subtitle">按主题听讲解、跟读重点句，适合通勤和复习</div>
+  </div>
   <div id="podcastList"></div>
   <div id="podcastScript" class="podcast-script" style="display:none"></div>
   <div class="podcast-player-bar" id="podcastPlayer" style="display:none">
@@ -2291,6 +2303,17 @@ async function sendChatMessage() {
   chatArea.scrollTop = chatArea.scrollHeight;
 
   try {
+    if (!isLoggedIn()) {
+      const mock = getMockResponse(text);
+      const ld = document.getElementById('chatLoading');
+      if (ld) ld.remove();
+      chatLoading = false;
+      appendChatBubble('ai', mock.korean, mock.chinese);
+      chatMessages.push({ role: 'user', content: text });
+      chatMessages.push({ role: 'assistant', content: mock.korean });
+      return;
+    }
+
     const prompt = SCENARIO_PROMPTS[chatScenario];
     const history = chatMessages.slice(-8);
 
@@ -2720,9 +2743,10 @@ Object.assign(window, {
   setVoiceTarget, playTargetAudio, toggleRecording, submitVoice, loadFlashcards,
   flipCard, playFcAudio, rateCard, skipCard, loadDaily, submitDaily, loadAchievements,
   loadProfile, setTtsRate, switchTtsVoice, markLessonComplete, reviewErrorLesson,
-  revealBlank, filterSongs, openSong, playSingleLyric, playAllLyrics, stopSongPlayback,
-  toggleSongFillMode, openPodcast, podcastPlayAll, podcastTogglePlay, podcastSkip,
-  podcastSetSpeed, sendChatMessage, sendQuickPhrase, switchToScenario,
+  revealBlank, loadSongs, filterSongs, openSong, playSingleLyric, playAllLyrics, stopSongPlayback,
+  toggleSongFillMode, loadPodcasts, openPodcast, podcastQuickPlay, podcastPlaySection,
+  podcastPlayAll, podcastTogglePlay, podcastSkip, podcastSetSpeed, stopPodcastPlayback,
+  sendChatMessage, sendQuickPhrase, switchToScenario, loadChatPage,
   wxLogin, wxDoLogin, wxMockLogin, wxCloseModal, wxLogout
 });
 </script>

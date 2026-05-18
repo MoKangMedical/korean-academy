@@ -1,8 +1,10 @@
 <view class="page">
   <view class="card gold-card">
-    <view class="profile-avatar">K</view>
+    <image wx:if="{{user.avatar_url}}" class="profile-avatar image-avatar" src="{{user.avatar_url}}" mode="aspectFill"></image>
+    <view wx:else class="profile-avatar">{{avatarLetter}}</view>
     <view class="profile-name">{{user.nickname || '韩语学习者'}}</view>
-    <view class="card-subtitle">Level {{user.level || 1}} · XP {{user.xp || 0}}</view>
+    <view class="card-subtitle">Level {{user.level || 1}} · XP {{user.xp || localStats.total_xp || 0}}</view>
+    <view class="button mini" bindtap="bindWechatProfile">微信授权资料</view>
   </view>
 
   <view class="section-title">学习状态</view>
@@ -20,6 +22,34 @@
       <view class="card-subtitle">词汇量</view>
     </view>
   </view>
+
+  <view class="section-title">每次学习进步</view>
+  <view class="progress-grid">
+    <view class="progress-cell">
+      <view class="progress-value">{{localStats.completed_lessons}}</view>
+      <view class="progress-label">已完成课时</view>
+    </view>
+    <view class="progress-cell">
+      <view class="progress-value">{{localStats.quiz_count}}</view>
+      <view class="progress-label">练习次数</view>
+    </view>
+    <view class="progress-cell">
+      <view class="progress-value">{{localStats.voice_count}}</view>
+      <view class="progress-label">发音评分</view>
+    </view>
+  </view>
+
+  <block wx:if="{{activity.length}}">
+    <view class="card activity-row" wx:for="{{activity}}" wx:key="timestamp">
+      <view class="badge">{{item.type}}</view>
+      <view class="grow">
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-subtitle">{{item.meta}}</view>
+      </view>
+      <view class="xp">+{{item.xp}} XP</view>
+    </view>
+  </block>
+  <view wx:else class="empty">完成课程、练习或发音评分后，这里会显示进步记录</view>
 
   <view class="section-title">音频标准</view>
   <view class="card">

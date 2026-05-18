@@ -1579,6 +1579,94 @@ body {
   font-size: 0.875rem; margin-bottom: 8px;
 }
 
+/* ═══════════════════ STUDY PROGRESS ═══════════════════ */
+.study-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.study-progress-cell {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.sp-value {
+  color: var(--gold);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sp-label {
+  color: var(--text-tertiary);
+  font-size: 0.6875rem;
+  margin-top: 6px;
+}
+
+.study-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.study-activity-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.sai-type {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(226, 182, 79, 0.1);
+  border: 1px solid rgba(226, 182, 79, 0.25);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sai-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.sai-title {
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sai-meta {
+  color: var(--text-tertiary);
+  font-size: 0.6875rem;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sai-xp {
+  color: var(--success);
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 /* ═══════════════════ TTS BUTTON ═══════════════════ */
 .tts-btn {
   display: inline-flex; align-items: center; gap: 4px;

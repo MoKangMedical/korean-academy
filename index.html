@@ -6,7 +6,7 @@
 <title>文文的韩语老师</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="css/style.css?v=14">
+<link rel="stylesheet" href="css/style.css?v=15">
 <script>
 // SW disabled — always load fresh from server
 console.log('Korean Academy v2 — no service worker');
@@ -340,7 +340,7 @@ console.log('Korean Academy v2 — no service worker');
 <!-- ==================== PROFILE ==================== -->
 <section class="page" id="page-profile">
   <div class="profile-header" style="text-align:center;padding:24px 0 16px">
-    <div class="profile-avatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(226,182,79,0.3),rgba(226,182,79,0.05));border:2px solid rgba(226,182,79,0.4);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:2rem">K</div>
+    <div class="profile-avatar" id="profileAvatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(226,182,79,0.3),rgba(226,182,79,0.05));border:2px solid rgba(226,182,79,0.4);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:2rem">K</div>
     <div class="profile-name" style="font-size:1.25rem;font-weight:600;background:linear-gradient(135deg,var(--gold),#f5d98e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="profileNickname">韩语学习者</div>
     <div class="profile-level" style="font-size:0.75rem;color:var(--text-tertiary);margin-top:4px" id="profileLevel">Level 1</div>
     <div class="progress-bar mt-8" style="width:60%;margin:8px auto 0"><div class="progress-fill" id="profileXPBar" style="width:0%"></div></div>
@@ -364,6 +364,26 @@ console.log('Korean Academy v2 — no service worker');
       <div class="stat-value" style="font-size:1.5rem;font-weight:700;color:var(--gold)" id="pVocab">-</div>
       <div class="stat-label" style="font-size:0.6875rem;color:var(--text-tertiary);margin-top:4px">词汇</div>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">学习进步</div>
+    <div class="study-progress-grid">
+      <div class="study-progress-cell">
+        <div class="sp-value" id="localCompletedLessons">0</div>
+        <div class="sp-label">已完成课时</div>
+      </div>
+      <div class="study-progress-cell">
+        <div class="sp-value" id="localQuizCount">0</div>
+        <div class="sp-label">练习次数</div>
+      </div>
+      <div class="study-progress-cell">
+        <div class="sp-value" id="localVoiceCount">0</div>
+        <div class="sp-label">发音评分</div>
+      </div>
+    </div>
+    <div class="study-activity-list" id="studyActivityList"></div>
+    <div class="text-xs" id="studyActivityEmpty" style="color:var(--text-tertiary);text-align:center;padding:12px 0">完成一课、一次练习或一次发音评分后，这里会显示最新进步</div>
   </div>
 
   <div class="card">
@@ -397,6 +417,7 @@ console.log('Korean Academy v2 — no service worker');
         <div class="wx-avatar" id="wxAvatarLetter">K</div>
         <div class="wx-info" id="wxNickname">韩语学习者</div>
       </div>
+      <div class="text-xs" id="wxSyncStatus" style="color:var(--text-tertiary);margin-top:8px;text-align:center">学习进度已在本机记录，登录后同步到账号</div>
       <button class="btn btn-outline mt-8" style="width:100%" onclick="wxLogout()">退出登录</button>
     </div>
   </div>
@@ -483,6 +504,109 @@ function isLoggedIn() {
   return !!localStorage.getItem('ka_token');
 }
 
+const STUDY_TOTAL_LESSONS = 500;
+
+function readJsonStore(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch(e) {
+    return fallback;
+  }
+}
+
+function writeJsonStore(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+function getLocalStudyState() {
+  const completed = readJsonStore('ka_completed', []);
+  const activity = readJsonStore('ka_activity', []);
+  const voiceCount = Number(localStorage.getItem('ka_voice_count') || 0);
+  const quizCount = Number(localStorage.getItem('ka_quiz_count') || 0);
+  const totalXP = Number(localStorage.getItem('ka_local_xp') || 0);
+  return {
+    completed,
+    activity,
+    voiceCount,
+    quizCount,
+    totalXP,
+    completed_lessons: completed.length,
+    total_lessons: STUDY_TOTAL_LESSONS
+  };
+}
+
+function addStudyActivity(type, title, meta, xp) {
+  const activity = readJsonStore('ka_activity', []);
+  activity.unshift({
+    type,
+    title,
+    meta: meta || '',
+    xp: xp || 0,
+    timestamp: Date.now()
+  });
+  writeJsonStore('ka_activity', activity.slice(0, 20));
+  if (xp) {
+    localStorage.setItem('ka_local_xp', String(Number(localStorage.getItem('ka_local_xp') || 0) + xp));
+  }
+  renderLocalProgress();
+}
+
+function formatActivityTime(ts) {
+  const diff = Math.max(0, Date.now() - ts);
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return '刚刚';
+  if (minutes < 60) return minutes + '分钟前';
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours + '小时前';
+  return Math.floor(hours / 24) + '天前';
+}
+
+function getDisplayUser() {
+  const user = readJsonStore('ka_user', {});
+  const nickname = localStorage.getItem('ka_wx_nickname') || user.nickname || '韩语学习者';
+  const avatar = localStorage.getItem('ka_wx_avatar') || user.avatar_url || user.avatar || '';
+  return { ...user, nickname, avatar };
+}
+
+function renderLocalProgress() {
+  const state = getLocalStudyState();
+  const pct = state.total_lessons ? Math.min(100, Math.round(state.completed_lessons / state.total_lessons * 100)) : 0;
+  const totalXP = state.totalXP;
+  const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+  setText('streakXP', 'XP ' + totalXP);
+  setText('ringLessonsVal', pct + '%');
+  setText('pLessons', state.completed_lessons + '/' + state.total_lessons);
+  setText('profileXPText', 'XP ' + totalXP);
+  setText('localCompletedLessons', state.completed_lessons);
+  setText('localQuizCount', state.quizCount);
+  setText('localVoiceCount', state.voiceCount);
+  const bar = document.getElementById('profileXPBar');
+  if (bar) bar.style.width = Math.min(100, totalXP % 100) + '%';
+  drawRing('ringLessons', pct, '#E2B64F');
+
+  const activityList = document.getElementById('studyActivityList');
+  const empty = document.getElementById('studyActivityEmpty');
+  if (activityList) {
+    if (state.activity.length) {
+      if (empty) empty.style.display = 'none';
+      activityList.innerHTML = state.activity.slice(0, 8).map(item => `
+        <div class="study-activity-item">
+          <div class="sai-type">${item.type || '学'}</div>
+          <div class="sai-main">
+            <div class="sai-title">${item.title || '学习记录'}</div>
+            <div class="sai-meta">${item.meta || ''} · ${formatActivityTime(item.timestamp)}</div>
+          </div>
+          <div class="sai-xp">+${item.xp || 0} XP</div>
+        </div>
+      `).join('');
+    } else {
+      activityList.innerHTML = '';
+      if (empty) empty.style.display = 'block';
+    }
+  }
+}
+
 // ── Init ──
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('backBtn').addEventListener('click', goBack);
@@ -490,6 +614,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   initParticles();
   restoreCachedUser();
+  renderLocalProgress();
 
   loadHomePage();
   loadCourses(0);
@@ -673,14 +798,29 @@ async function doMockLogin() {
 
 function restoreCachedUser() {
   const cached = localStorage.getItem('ka_user');
-  if (!cached) return;
-  try { updateUserUI(JSON.parse(cached)); } catch(_) {}
+  if (cached) {
+    try { updateUserUI(JSON.parse(cached)); } catch(_) {}
+  } else {
+    updateUserUI(getDisplayUser());
+  }
 }
 
 function updateUserUI(user) {
   if (!user) return;
-  document.getElementById('profileNickname').textContent = user.nickname || '韩语学习者';
+  const displayUser = { ...user, ...getDisplayUser() };
+  document.getElementById('profileNickname').textContent = displayUser.nickname || '韩语学习者';
   document.getElementById('profileLevel').textContent = 'Level ' + (user.level || 1);
+  const avatar = document.getElementById('profileAvatar');
+  if (avatar) {
+    const avatarUrl = displayUser.avatar;
+    if (avatarUrl) {
+      avatar.style.background = `center / cover no-repeat url("${avatarUrl}")`;
+      avatar.textContent = '';
+    } else {
+      avatar.style.background = 'linear-gradient(135deg,rgba(226,182,79,0.3),rgba(226,182,79,0.05))';
+      avatar.textContent = (displayUser.nickname || 'K').charAt(0).toUpperCase();
+    }
+  }
 }
 
 // ── Stats Rings ──
@@ -720,6 +860,7 @@ async function loadHomePage() {
     const stats = statsResult.status === 'fulfilled' ? statsResult.value : null;
     const courses = coursesResult.status === 'fulfilled' ? coursesResult.value : null;
     const streak = streakResult.status === 'fulfilled' ? streakResult.value : null;
+    renderLocalProgress();
     
     if (streak) {
       document.getElementById('streakCount').textContent = streak.current_streak || 0;
@@ -735,6 +876,8 @@ async function loadHomePage() {
       document.getElementById('ringLessonsVal').textContent = completedPct + '%';
       document.getElementById('ringVocabVal').textContent = vocabPct + '%';
       document.getElementById('ringAccuracyVal').textContent = (stats.correct_rate || 0) + '%';
+    } else {
+      renderLocalProgress();
     }
     
     const homeCourses = document.getElementById('homeCourses');
@@ -1041,6 +1184,8 @@ function showQuizResult() {
   
   if (quizState.lessonId) {
     api.updateProgress({ lesson_id: quizState.lessonId, status: 'completed', score }).catch(() => {});
+    localStorage.setItem('ka_quiz_count', String(Number(localStorage.getItem('ka_quiz_count') || 0) + 1));
+    addStudyActivity('练', '完成课后练习', '第 ' + quizState.lessonId + ' 课 · 得分 ' + score, Math.max(5, Math.round(score / 10)));
   }
   
   let msg = '继续加油!';
@@ -1159,6 +1304,8 @@ async function submitVoice() {
   try {
     const result = await api.uploadPronunciation(voiceBlob, voiceTargetText);
     if (result) {
+      localStorage.setItem('ka_voice_count', String(Number(localStorage.getItem('ka_voice_count') || 0) + 1));
+      addStudyActivity('音', '完成发音评分', voiceTargetText.slice(0, 24) + ' · 得分 ' + (result.score || '-'), 5);
       document.getElementById('voiceResult').innerHTML = `
         <div class="voice-score mt-16">
           <div class="score-circle">${result.score}</div>
@@ -1382,6 +1529,8 @@ function getAchievementIcon(icon) {
 
 // ── PROFILE ──
 async function loadProfile() {
+  updateUserUI(getDisplayUser());
+  renderLocalProgress();
   if (!isLoggedIn()) {
     loadErrorNotebook();
     updateWxLoginUI();
@@ -1396,6 +1545,8 @@ async function loadProfile() {
     if (stats) {
       document.getElementById('pLessons').textContent = (stats.completed_lessons || 0) + '/' + (stats.total_lessons || 0);
       document.getElementById('pVocab').textContent = stats.total_vocabulary || 0;
+      const local = getLocalStudyState();
+      document.getElementById('localCompletedLessons').textContent = Math.max(local.completed_lessons, stats.completed_lessons || 0);
     }
     
     if (streak) {
@@ -1821,15 +1972,17 @@ function revealBlank(lineIdx, word) {
 async function markLessonComplete(lessonId) {
   try {
     await api.updateProgress({ lesson_id: lessonId, status: 'completed', score: 100 });
-    // Store locally for visual feedback
-    const completed = JSON.parse(localStorage.getItem('ka_completed') || '[]');
-    if (!completed.includes(lessonId)) completed.push(lessonId);
-    localStorage.setItem('ka_completed', JSON.stringify(completed));
-    // Update the button visual
-    const btn = document.querySelector('.lesson-actions .btn-outline');
-    if (btn) { btn.textContent = '已完成'; btn.disabled = true; btn.style.opacity = '0.6'; }
-    toast('已标记完成');
-  } catch(e) { toast('操作失败'); }
+  } catch(e) {}
+  // Store locally for visual feedback, even if the network sync is unavailable.
+  const completed = JSON.parse(localStorage.getItem('ka_completed') || '[]');
+  const isNew = !completed.includes(lessonId);
+  if (isNew) completed.push(lessonId);
+  localStorage.setItem('ka_completed', JSON.stringify(completed));
+  if (isNew) addStudyActivity('课', '完成课时', '第 ' + lessonId + ' 课', 10);
+  // Update the button visual
+  const btn = document.querySelector('.lesson-actions .btn-outline');
+  if (btn) { btn.textContent = '已完成'; btn.disabled = true; btn.style.opacity = '0.6'; }
+  toast(isNew ? '已记录进步' : '这一课已完成');
 }
 
 // ── NEXT LESSON NAVIGATION ──
@@ -1933,7 +2086,9 @@ async function wxDoLogin() {
   const data = await doMockLogin();
   if (data && data.user) {
     localStorage.setItem('ka_wx_linked', '1');
+    localStorage.setItem('ka_wx_nickname', data.user.nickname || '韩语学习者');
     updateWxLoginUI();
+    updateUserUI(data.user);
     toast('登录成功');
   }
 }
@@ -1946,6 +2101,7 @@ async function wxMockLogin() {
     localStorage.setItem('ka_wx_linked', '1');
     localStorage.setItem('ka_wx_nickname', data.user.nickname || '测试用户');
     updateWxLoginUI();
+    updateUserUI(data.user);
     toast('模拟登录成功');
   }
 }
@@ -1963,15 +2119,24 @@ function updateWxLoginUI() {
   const linked = localStorage.getItem('ka_wx_linked') === '1';
   const loginArea = document.getElementById('wxLoginArea');
   const loggedInArea = document.getElementById('wxLoggedInArea');
+  const user = getDisplayUser();
   
   if (linked) {
     if (loginArea) loginArea.style.display = 'none';
     if (loggedInArea) loggedInArea.style.display = 'block';
-    const nickname = localStorage.getItem('ka_wx_nickname') || '韩语学习者';
+    const nickname = user.nickname || '韩语学习者';
     const wxNick = document.getElementById('wxNickname');
     const wxAvatar = document.getElementById('wxAvatarLetter');
     if (wxNick) wxNick.textContent = nickname;
-    if (wxAvatar) wxAvatar.textContent = nickname.charAt(0).toUpperCase();
+    if (wxAvatar) {
+      if (user.avatar) {
+        wxAvatar.style.background = `center / cover no-repeat url("${user.avatar}")`;
+        wxAvatar.textContent = '';
+      } else {
+        wxAvatar.style.background = '';
+        wxAvatar.textContent = nickname.charAt(0).toUpperCase();
+      }
+    }
   } else {
     if (loginArea) loginArea.style.display = 'block';
     if (loggedInArea) loggedInArea.style.display = 'none';

@@ -94,6 +94,7 @@ module.exports = {
   getLesson: (id) => request(`/courses/lessons/${id}`),
   getVocabulary: (lessonId) => request(`/vocabulary?lesson_id=${lessonId}`),
   getProgress: () => request('/progress'),
+  updateProgress: (data) => request('/progress/update', { method: 'POST', data }),
   getStreak: () => request('/daily/streak'),
   getAchievements: () => request('/achievements')
 };

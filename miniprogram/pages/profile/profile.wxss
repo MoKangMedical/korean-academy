@@ -13,9 +13,58 @@
   font-weight: 800;
 }
 
+.image-avatar {
+  display: block;
+  background: transparent;
+}
+
 .profile-name {
   color: #F5D98E;
   font-size: 38rpx;
   font-weight: 700;
   text-align: center;
+}
+
+.button.mini {
+  margin-top: 20rpx;
+  min-height: 64rpx;
+  line-height: 64rpx;
+  font-size: 26rpx;
+}
+
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.progress-cell {
+  padding: 22rpx 10rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.04);
+  text-align: center;
+}
+
+.progress-value {
+  color: #E2B64F;
+  font-size: 38rpx;
+  font-weight: 800;
+}
+
+.progress-label {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 22rpx;
+  margin-top: 6rpx;
+}
+
+.activity-row {
+  align-items: center;
+}
+
+.xp {
+  color: #22C55E;
+  font-size: 24rpx;
+  font-weight: 700;
 }

@@ -18,6 +18,7 @@ App({
           const data = await api.login(code || `mini_${Date.now()}`);
           if (data && data.user) {
             this.globalData.user = data.user;
+            wx.setStorageSync('ka_user', data.user);
           }
         } catch (err) {
           console.warn('miniapp login failed', err);

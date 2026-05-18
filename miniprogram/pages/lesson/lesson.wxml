@@ -3,6 +3,7 @@
     <view class="card-title">{{lesson.title || title}}</view>
     <view class="card-subtitle">本课讲解音频已预生成，适合跟读和复习</view>
     <view class="button" bindtap="toggleAudio">{{playing ? '暂停课程音频' : '播放课程音频'}}</view>
+    <view class="button secondary complete-button" bindtap="markComplete">标记完成并记录进步</view>
   </view>
 
   <view class="card">

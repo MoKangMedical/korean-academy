@@ -3,6 +3,13 @@ const api = require('../../utils/api');
 const recorder = wx.getRecorderManager();
 let audio = null;
 
+function addStudyActivity(type, title, meta, xp) {
+  const activity = wx.getStorageSync('ka_activity') || [];
+  activity.unshift({ type, title, meta, xp, timestamp: Date.now() });
+  wx.setStorageSync('ka_activity', activity.slice(0, 20));
+  wx.setStorageSync('ka_local_xp', Number(wx.getStorageSync('ka_local_xp') || 0) + xp);
+}
+
 Page({
   data: {
     vocab: [],
@@ -112,6 +119,8 @@ Page({
     try {
       const result = await api.uploadPronunciation(this.data.tempFilePath, this.data.targetText);
       this.setData({ result: result || {} });
+      wx.setStorageSync('ka_voice_count', Number(wx.getStorageSync('ka_voice_count') || 0) + 1);
+      addStudyActivity('音', '完成发音评分', `${this.data.targetKorean || this.data.targetText} · 得分 ${(result || {}).score || '-'}`, 5);
     } catch (err) {
       wx.showToast({ title: '评分失败', icon: 'none' });
     } finally {

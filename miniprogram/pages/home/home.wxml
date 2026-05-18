@@ -10,8 +10,16 @@
       <view class="badge">学</view>
       <view class="grow">
         <view class="card-title">{{streak.current_streak || 0}} 天连续学习</view>
-        <view class="card-subtitle">XP {{streak.total_xp || 0}} · 今日继续保持</view>
+        <view class="card-subtitle">XP {{streak.total_xp || localStats.total_xp || 0}} · 已完成 {{localStats.completed_lessons}} 课</view>
       </view>
+    </view>
+  </view>
+
+  <view class="card row">
+    <view class="badge">进</view>
+    <view class="grow">
+      <view class="card-title">本机学习进步</view>
+      <view class="card-subtitle">练习 {{localStats.quiz_count}} 次 · 发音评分 {{localStats.voice_count}} 次</view>
     </view>
   </view>
 

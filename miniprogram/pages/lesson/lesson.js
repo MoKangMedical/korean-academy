@@ -2,6 +2,13 @@ const api = require('../../utils/api');
 
 let audio = null;
 
+function addStudyActivity(type, title, meta, xp) {
+  const activity = wx.getStorageSync('ka_activity') || [];
+  activity.unshift({ type, title, meta, xp, timestamp: Date.now() });
+  wx.setStorageSync('ka_activity', activity.slice(0, 20));
+  wx.setStorageSync('ka_local_xp', Number(wx.getStorageSync('ka_local_xp') || 0) + xp);
+}
+
 function stripMarkdown(content = '') {
   return content
     .replace(/^#+\s*/gm, '')
@@ -76,5 +83,20 @@ Page({
     const { korean, sentence } = e.currentTarget.dataset;
     wx.setStorageSync('ka_voice_target', { korean, sentence });
     wx.switchTab({ url: '/pages/voice/voice' });
+  },
+
+  async markComplete() {
+    if (!this.data.id) return;
+    try {
+      await api.updateProgress({ lesson_id: this.data.id, status: 'completed', score: 100 });
+    } catch (err) {}
+    const completed = wx.getStorageSync('ka_completed_lessons') || [];
+    const isNew = !completed.includes(this.data.id);
+    if (isNew) {
+      completed.push(this.data.id);
+      wx.setStorageSync('ka_completed_lessons', completed);
+      addStudyActivity('课', '完成课时', `第 ${this.data.id} 课 · ${this.data.lesson.title || this.data.title}`, 10);
+    }
+    wx.showToast({ title: isNew ? '已记录进步' : '这一课已完成', icon: 'none' });
   }
 });

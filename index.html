@@ -481,7 +481,7 @@ console.log('Korean Academy v2 — no service worker');
 
 </div><!-- /#app -->
 
-<script src="js/api.js?v=14"></script>
+<script src="js/api.js?v=15"></script>
 <script src="js/songs.js?v=12"></script>
 <script>
 // ═══════════════════════════════════════════════════
@@ -2772,7 +2772,20 @@ function openPodcast(podcastId) {
 
 function podcastQuickPlay(podcastId) {
   openPodcast(podcastId);
-  setTimeout(() => podcastPlayAll(), 300);
+  podcastPlayAll();
+}
+
+function getPodcastAudioText(section) {
+  if (!section) return '';
+  if (section.audio) return section.audio;
+  if (section.type === 'title') return '现在开始：' + section.text;
+  if (section.type === 'practice') return '练习提示：请看屏幕内容跟读。' + section.text.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]+/g, '韩语例句');
+  if (section.type === 'korean') {
+    const parts = section.text.split(/—|-/);
+    const explanation = parts.length > 1 ? parts.slice(1).join('，').trim() : section.text.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]+/g, '屏幕上的韩语');
+    return '韩语学习点：请看屏幕上的韩语，中文讲解是：' + explanation;
+  }
+  return section.text || '';
 }
 
 function podcastPlaySection(idx) {
@@ -2788,22 +2801,15 @@ function podcastPlaySection(idx) {
   if (el) el.classList.add('playing');
 
   const section = script[idx];
-  if (section.type === 'korean') {
-    KoreanTTS.speak(section.text, podcastSpeed);
-    // Estimate duration
-    const duration = Math.max(1500, section.text.length * 120 / podcastSpeed);
-    if (podcastPlaying && podcastAutoAdvance) {
-      clearTimeout(podcastTimer);
-      podcastTimer = setTimeout(() => podcastAdvance(), duration);
-    }
-  } else if (section.type === 'narration' && podcastPlaying && podcastAutoAdvance) {
-    // For narration, just pause briefly
-    const duration = Math.max(2000, section.text.length * 50 / podcastSpeed);
+  const audioText = getPodcastAudioText(section);
+  if (audioText) {
+    KoreanTTS.speakChinese(audioText, podcastSpeed);
+  }
+
+  if (podcastPlaying && podcastAutoAdvance) {
+    const duration = Math.max(2200, audioText.length * 170 / podcastSpeed);
     clearTimeout(podcastTimer);
     podcastTimer = setTimeout(() => podcastAdvance(), duration);
-  } else if (podcastPlaying && podcastAutoAdvance) {
-    clearTimeout(podcastTimer);
-    podcastTimer = setTimeout(() => podcastAdvance(), 2000 / podcastSpeed);
   }
 
   updatePodcastProgress();

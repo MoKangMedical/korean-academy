@@ -224,6 +224,10 @@ const KoreanTTS = {
     return this._voiceType === 'male' ? 'ko-KR-InJoonNeural' : 'ko-KR-SunHiNeural';
   },
 
+  _getServerUrl(text, voice) {
+    return API_BASE + '/tts?text=' + encodeURIComponent(text) + '&voice=' + encodeURIComponent(voice);
+  },
+
   /**
    * Speak Korean text. Local SpeechSynthesis first; server MP3 fallback.
    * @param {string}  text      — Korean text
@@ -277,7 +281,7 @@ const KoreanTTS = {
     }
 
     const voice = this._serverVoice;
-    const url = API_BASE + '/tts?text=' + encodeURIComponent(text) + '&voice=' + encodeURIComponent(voice);
+    const url = this._getServerUrl(text, voice);
 
     // Create a fresh Audio element — mobile browsers play Audio(url)
     // more reliably than reusing a hidden <audio> element.
@@ -299,7 +303,7 @@ const KoreanTTS = {
       setTimeout(() => {
         audio.play().catch(e2 => {
           console.error('KoreanTTS: retry also failed —', e2.message);
-          if (typeof toast !== 'undefined') toast('⚠️ 播放失败，请重试');
+          if (typeof toast !== 'undefined') toast('播放失败，请重试');
         });
       }, 100);
     });
@@ -309,6 +313,51 @@ const KoreanTTS = {
       if (this._currentAudio === audio) {
         this._currentAudio = null;
       }
+    };
+  },
+
+  speakChinese(text, rate = 1) {
+    if (!text) return;
+    if (!this._ready) this.init();
+    this.stop();
+
+    if ('speechSynthesis' in window) {
+      const zhVoice = this._voices.find(v => /^zh/i.test(v.lang));
+      if (zhVoice) {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = zhVoice.lang || 'zh-CN';
+        utter.voice = zhVoice;
+        utter.rate = rate;
+        utter.pitch = 1;
+        speechSynthesis.speak(utter);
+        return;
+      }
+    }
+
+    this._speakServerWithVoice(text, 'zh-CN-YunyangNeural');
+  },
+
+  _speakServerWithVoice(text, voice) {
+    if (this._currentAudio) {
+      this._currentAudio.pause();
+      this._currentAudio.src = '';
+      this._currentAudio.load();
+      this._currentAudio = null;
+    }
+
+    const audio = new Audio();
+    audio.preload = 'auto';
+    audio.src = this._getServerUrl(text, voice);
+    this._currentAudio = audio;
+    audio.load();
+    audio.play().catch(err => {
+      console.error('KoreanTTS: playback blocked —', err.name, err.message);
+      setTimeout(() => audio.play().catch(() => {
+        if (typeof toast !== 'undefined') toast('播放失败，请重试');
+      }), 100);
+    });
+    audio.onended = () => {
+      if (this._currentAudio === audio) this._currentAudio = null;
     };
   },
 

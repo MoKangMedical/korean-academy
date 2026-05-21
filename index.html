@@ -499,6 +499,7 @@ let quizState = { questions: [], currentIndex: 0, answers: [], lessonId: null, l
 let currentFlashcard = null;
 let voiceBlob = null;
 let voiceTargetText = '';
+let localDailyChallenge = null;
 
 function isLoggedIn() {
   return !!localStorage.getItem('ka_token');
@@ -605,6 +606,17 @@ function renderLocalProgress() {
       if (empty) empty.style.display = 'block';
     }
   }
+}
+
+function getLocalAchievements() {
+  const state = getLocalStudyState();
+  return [
+    { title: '开始学习', icon: 'star', unlocked: state.activity.length > 0, xp_reward: 10 },
+    { title: '完成一课', icon: 'book', unlocked: state.completed_lessons >= 1, xp_reward: 20 },
+    { title: '练习达人', icon: 'pencil', unlocked: state.quizCount >= 1, xp_reward: 20 },
+    { title: '发音练习', icon: 'bolt', unlocked: state.voiceCount >= 1, xp_reward: 20 },
+    { title: '坚持学习', icon: 'calendar', unlocked: state.totalXP >= 50, xp_reward: 30 }
+  ];
 }
 
 // ── Init ──
@@ -1330,8 +1342,36 @@ async function loadFlashcards() {
   const empty = document.getElementById('flashcardEmpty');
   const actions = document.getElementById('flashcardActions');
   if (!isLoggedIn()) {
-    container.style.display = 'none';
-    empty.style.display = 'block';
+    try {
+      const vocab = await api.getVocabulary(1);
+      const cards = (vocab || []).slice(0, 10).map(v => ({
+        vocab_id: v.id,
+        korean: v.korean,
+        romanization: v.romanization,
+        part_of_speech: v.part_of_speech || '',
+        chinese: v.chinese,
+        example_ko: v.example_ko,
+        example_zh: v.example_zh,
+        review_count: Number(localStorage.getItem('ka_local_fc_' + v.id) || 0)
+      }));
+      if (!cards.length) throw new Error('no local cards');
+      fcCardList = cards;
+      fcCurrentIdx = 0;
+      currentFlashcard = cards[0];
+      container.style.display = 'block';
+      empty.style.display = 'none';
+      actions.style.display = 'none';
+      document.getElementById('flashcard').classList.remove('flipped');
+      document.getElementById('fcTotal').textContent = cards.length;
+      document.getElementById('fcDue').textContent = cards.length;
+      document.getElementById('fcMastered').textContent = Number(localStorage.getItem('ka_local_fc_mastered') || 0);
+      document.getElementById('fcProgress').textContent = '1/' + cards.length;
+      updateFlashcardUI(currentFlashcard);
+      return;
+    } catch(e) {
+      container.style.display = 'none';
+      empty.style.display = 'block';
+    }
     actions.style.display = 'none';
     document.getElementById('fcProgress').textContent = '-';
     document.getElementById('fcTotal').textContent = 0;
@@ -1427,7 +1467,16 @@ let fcCurrentIdx = 0;
 async function rateCard(quality) {
   if (!currentFlashcard) return;
   try {
-    await api.reviewCard(currentFlashcard.vocab_id, quality);
+    if (isLoggedIn()) {
+      await api.reviewCard(currentFlashcard.vocab_id, quality);
+    } else {
+      const key = 'ka_local_fc_' + currentFlashcard.vocab_id;
+      localStorage.setItem(key, String(Number(localStorage.getItem(key) || 0) + 1));
+      if (quality >= 4) {
+        localStorage.setItem('ka_local_fc_mastered', String(Number(localStorage.getItem('ka_local_fc_mastered') || 0) + 1));
+      }
+      addStudyActivity('卡', '完成闪卡复习', currentFlashcard.korean + ' · ' + currentFlashcard.chinese, quality >= 4 ? 3 : 1);
+    }
     fcCurrentIdx++;
     if (fcCurrentIdx < fcCardList.length) {
       currentFlashcard = fcCardList[fcCurrentIdx];
@@ -1459,6 +1508,25 @@ function skipCard() {
 
 // ── DAILY ──
 async function loadDaily() {
+  if (!isLoggedIn()) {
+    localDailyChallenge = {
+      id: 'local-hello',
+      question: '안녕하세요 的中文意思是什么？',
+      type: 'vocab',
+      answers: ['你好', '您好'],
+      explanation: '안녕하세요 是最常用的韩语礼貌问候，可以理解为“你好”或“您好”。'
+    };
+    document.getElementById('dailyQuestion').textContent = localDailyChallenge.question;
+    document.getElementById('dailyType').textContent = '本地每日挑战 · 登录后可同步打卡';
+    document.getElementById('dailyAnswer').value = '';
+    document.getElementById('dailyResult').style.display = 'none';
+    document.getElementById('dailyCard').style.display = 'block';
+    const state = getLocalStudyState();
+    document.getElementById('dailyStreakCount').textContent = state.activity.length ? 1 : 0;
+    document.getElementById('dailyLongestStreak').textContent = state.activity.length ? 1 : 0;
+    document.getElementById('dailyTotalXP').textContent = state.totalXP || 0;
+    return;
+  }
   try {
     const challenge = await api.getDaily();
     if (challenge) {
@@ -1481,6 +1549,28 @@ async function loadDaily() {
 async function submitDaily() {
   const answer = document.getElementById('dailyAnswer').value.trim();
   if (!answer) { toast('请输入答案'); return; }
+  if (!isLoggedIn()) {
+    const challenge = localDailyChallenge || {
+      answers: ['你好', '您好'],
+      explanation: '안녕하세요 是最常用的韩语礼貌问候。'
+    };
+    const normalized = answer.replace(/\s+/g, '');
+    const isCorrect = challenge.answers.some(a => normalized.includes(a));
+    const xp = isCorrect ? 8 : 2;
+    addStudyActivity('日', '完成每日挑战', isCorrect ? '回答正确' : '已完成本地练习', xp);
+    document.getElementById('dailyCard').style.display = 'none';
+    document.getElementById('dailyResult').style.display = 'block';
+    document.getElementById('dailyResult').innerHTML = `
+      <div class="card ${isCorrect ? 'card-gold' : ''}">
+        <div class="text-center" style="font-size:1.5rem;margin-bottom:8px">${isCorrect ? '正确!' : '继续练习'}</div>
+        <div class="text-center" style="color:var(--text-secondary);margin-bottom:4px">${challenge.explanation}</div>
+        <div class="text-center" style="color:var(--gold);font-weight:700">+${xp} XP</div>
+        <button class="btn btn-outline mt-12" style="width:100%" onclick="wxLogin()">登录后同步进度</button>
+      </div>
+    `;
+    loadHomePage();
+    return;
+  }
   try {
     const challenge = await api.getDaily();
     const result = await api.submitDaily(challenge.id, answer);
@@ -1504,7 +1594,14 @@ async function submitDaily() {
 // ── ACHIEVEMENTS ──
 async function loadAchievements() {
   if (!isLoggedIn()) {
-    document.getElementById('achXPTotal').textContent = '0 XP';
+    const achievements = getLocalAchievements();
+    const totalXP = achievements.filter(a => a.unlocked).reduce((sum, a) => sum + (a.xp_reward || 0), 0);
+    document.getElementById('achXPTotal').textContent = totalXP + ' XP';
+    document.getElementById('achievementGrid').innerHTML = achievements.map(a => `
+      <div class="achievement-badge ${a.unlocked ? 'unlocked' : 'locked'}">
+        <div class="ab-icon">${getAchievementIcon(a.icon)}</div>
+        <div class="ab-title">${a.title}</div>
+      </div>`).join('');
     return;
   }
   try {
